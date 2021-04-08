@@ -4,7 +4,7 @@ dotenv.config();
 export default {
   container: {
     webServer: {
-      port: 8080,
+      port: parseInt(process.env.WEBSERVER_PORT ?? '8080', 10),
     },
     database: {
       user: process.env.DATABASE_USER ?? '',
@@ -12,7 +12,7 @@ export default {
       database: 'bondappetit',
     },
     ethereum: {
-      host: process.env.ETH_NODE ?? ''
+      host: process.env.ETH_NODE ?? '',
     },
   },
 };
