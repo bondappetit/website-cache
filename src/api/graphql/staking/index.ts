@@ -1,11 +1,15 @@
 import { Staking } from '@models/Staking/Entity';
 import BigNumber from 'bignumber.js';
 import { GraphQLNonNull, GraphQLObjectType, GraphQLString } from 'graphql';
-import { dateTimeType, errorType } from '../types';
+import { addressScalar, dateTimeType, errorType } from '../types';
 
 export const stakingType = new GraphQLObjectType<Staking>({
   name: 'StakingType',
   fields: {
+    address: {
+      type: GraphQLNonNull(addressScalar),
+      description: 'Staking contract address',
+    },
     totalSupply: {
       type: GraphQLNonNull(GraphQLString),
       description: 'Staking total supply',
