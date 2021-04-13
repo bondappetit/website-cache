@@ -1,11 +1,15 @@
 import { Token } from '@models/Token/Entity';
 import BigNumber from 'bignumber.js';
 import { GraphQLInt, GraphQLNonNull, GraphQLObjectType, GraphQLString } from 'graphql';
-import { errorType } from '../types';
+import { addressScalar, errorType } from '../types';
 
 export const tokenType = new GraphQLObjectType<Token>({
   name: 'TokenType',
   fields: {
+    address: {
+      type: GraphQLNonNull(addressScalar),
+      description: 'Token address',
+    },
     name: {
       type: GraphQLNonNull(GraphQLString),
       description: 'Token name',
