@@ -87,6 +87,14 @@ export class StakingService {
       const stakingTokenPriceUSD = new BigNumber(stakingToken?.totalLiquidityUSD ?? '0')
         .div(stakingToken?.totalSupply ?? '1')
         .toString();
+      const aprPerBlock = new BigNumber(rewardRate)
+        .div(new BigNumber(10).pow(rewardTokenDecimals))
+        .multipliedBy(rewardTokenPriceUSD)
+        .div(new BigNumber(stakingToken?.totalSupply ?? '0').multipliedBy(stakingTokenPriceUSD));
+      const blocksPerDay = new BigNumber(60)
+        .div(network.data.averageBlockTime)
+        .multipliedBy(60)
+        .multipliedBy(24);
 
       const staking = {
         address,
@@ -130,12 +138,11 @@ export class StakingService {
                 )
                 .toDate()
             : null,
-        roi: new BigNumber(rewardRate)
-          .div(new BigNumber(10).pow(rewardTokenDecimals))
-          .multipliedBy(rewardTokenPriceUSD)
-          .div(new BigNumber(stakingToken?.totalSupply ?? '0').multipliedBy(stakingTokenPriceUSD))
-          .multipliedBy(1000000)
-          .toString(),
+        aprBlock: aprPerBlock.toString(),
+        aprDay: new BigNumber(aprPerBlock).multipliedBy(blocksPerDay).toString(),
+        aprWeek: new BigNumber(aprPerBlock).multipliedBy(blocksPerDay.multipliedBy(7)).toString(),
+        aprMonth: new BigNumber(aprPerBlock).multipliedBy(blocksPerDay.multipliedBy(30)).toString(),
+        aprYear: new BigNumber(aprPerBlock).multipliedBy(blocksPerDay.multipliedBy(356)).toString(),
         updatedAt: new Date(),
       };
       if (cached) {

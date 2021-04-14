@@ -101,9 +101,41 @@ export const stakingType = new GraphQLObjectType<Staking>({
         date: unstakingStartDate,
       }),
     },
-    roi: {
-      type: GraphQLString,
-      description: 'Return on investment',
+    apr: {
+      type: GraphQLNonNull(
+        new GraphQLObjectType({
+          name: 'StakingAprType',
+          fields: {
+            block: {
+              type: GraphQLNonNull(GraphQLString),
+              description: 'APR per block',
+            },
+            day: {
+              type: GraphQLNonNull(GraphQLString),
+              description: 'APR per day',
+            },
+            week: {
+              type: GraphQLNonNull(GraphQLString),
+              description: 'APR per week',
+            },
+            month: {
+              type: GraphQLNonNull(GraphQLString),
+              description: 'APR per month',
+            },
+            year: {
+              type: GraphQLNonNull(GraphQLString),
+              description: 'APR per year',
+            },
+          },
+        }),
+      ),
+      resolve: ({ aprBlock, aprDay, aprWeek, aprMonth, aprYear }) => ({
+        block: aprBlock,
+        day: aprDay,
+        week: aprWeek,
+        month: aprMonth,
+        year: aprYear,
+      }),
     },
   },
 });

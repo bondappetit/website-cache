@@ -14,7 +14,11 @@ export interface Staking {
   stakingEndDate: Date | null;
   unstakingStartBlock: string | null;
   unstakingStartDate: Date | null;
-  roi: string;
+  aprBlock: string;
+  aprDay: string;
+  aprWeek: string;
+  aprMonth: string;
+  aprYear: string;
   updatedAt: Date;
 }
 
