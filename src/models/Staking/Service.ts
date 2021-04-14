@@ -97,16 +97,22 @@ export class StakingService {
         stakingTokenDecimals,
         totalSupply,
         blockPoolRate: rewardRate,
-        dailyPoolRate: new BigNumber(rewardRate).multipliedBy(4 * 60 * 24).toString(),
+        dailyPoolRate: new BigNumber(rewardRate)
+          .multipliedBy(
+            new BigNumber(60).div(network.data.averageBlockTime).multipliedBy(60).multipliedBy(24),
+          )
+          .toFixed(0),
         stakingEndBlock: stakingEndBlock !== '0' ? stakingEndBlock : null,
         stakingEndDate:
           stakingEndBlock !== '0'
             ? dayjs()
                 .add(
-                  new BigNumber(stakingEndBlock)
-                    .minus(currentBlockNumber)
-                    .multipliedBy(15)
-                    .toNumber(),
+                  Math.floor(
+                    new BigNumber(stakingEndBlock)
+                      .minus(currentBlockNumber)
+                      .multipliedBy(network.data.averageBlockTime)
+                      .toNumber(),
+                  ),
                   'seconds',
                 )
                 .toDate()
@@ -118,7 +124,7 @@ export class StakingService {
                 .add(
                   new BigNumber(unstakingStartBlock)
                     .minus(currentBlockNumber)
-                    .multipliedBy(15)
+                    .multipliedBy(network.data.averageBlockTime)
                     .toNumber(),
                   'seconds',
                 )
