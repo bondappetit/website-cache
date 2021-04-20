@@ -16,6 +16,8 @@ import { uniswapPairPayload, uniswapPairType } from './graphql/uniswapPair';
 import { addressScalar } from './graphql/types';
 import { currentNetwork } from './middlewares/currentNetwork';
 import { stakingPayload, stakingType } from './graphql/staking';
+import { Staking } from '@models/Staking/Entity';
+import BigNumber from 'bignumber.js';
 
 export function use({ server, express }: WebServer) {
   const apollo = new ApolloServer({
@@ -23,6 +25,43 @@ export function use({ server, express }: WebServer) {
       query: new GraphQLObjectType<undefined, Request>({
         name: 'Query',
         fields: {
+          getTVL: {
+            type: GraphQLNonNull(GraphQLString),
+            resolve: async (root, args, { currentNetwork }) => {
+              const stakingAddresses = [
+                currentNetwork.data.contracts.UsdcGovLPStaking.address,
+                currentNetwork.data.contracts.UsdcStableLPLockStaking.address,
+              ];
+              const stakings = await Promise.all(
+                stakingAddresses.map(async (address: string) =>
+                  container.model.stakingService().find(currentNetwork, address),
+                ),
+              );
+              const tvl = await stakings.reduce(
+                async (sum: Promise<BigNumber>, staking: Staking | undefined) => {
+                  if (staking === undefined) return sum;
+
+                  const pair = await container.model
+                    .uniswapLPService()
+                    .find(currentNetwork, staking.stakingToken);
+                  if (pair === undefined) return sum;
+
+                  return (await sum).plus(
+                    new BigNumber(pair.totalLiquidityUSD)
+                      .div(pair.totalSupply)
+                      .multipliedBy(
+                        new BigNumber(staking.totalSupply).div(
+                          new BigNumber(10).pow(staking.stakingTokenDecimals),
+                        ),
+                      ),
+                  );
+                },
+                Promise.resolve(new BigNumber(0)),
+              );
+
+              return tvl.toFixed(2);
+            },
+          },
           token: {
             type: GraphQLNonNull(tokenPayload),
             args: {
@@ -178,7 +217,7 @@ export function use({ server, express }: WebServer) {
 
               return stakings.filter((staking) => staking !== undefined);
             },
-          }
+          },
         },
       }),
     }),
