@@ -31,6 +31,7 @@ export function use({ server, express }: WebServer) {
               const stakingAddresses = [
                 currentNetwork.data.contracts.UsdcGovLPStaking.address,
                 currentNetwork.data.contracts.UsdcStableLPLockStaking.address,
+                currentNetwork.data.contracts.UsdnGovLPStaking.address,
               ];
               const stakings = await Promise.all(
                 stakingAddresses.map(async (address: string) =>
