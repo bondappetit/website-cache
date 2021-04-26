@@ -13,6 +13,8 @@ import * as StakingUserEntity from './Staking/User/Entity';
 import * as StakingUserService from './Staking/User/Service';
 import * as MediumEntity from './Medium/Entity';
 import * as MediumService from './Medium/Service';
+import * as BurgerSwapBridgeEntity from './BurgerSwap/Bridge/Entity';
+import * as BurgerSwapBridgeService from './BurgerSwap/Bridge/Service';
 
 export class ModelContainer extends Container<typeof AppContainer> {
   readonly migrationTable = MigrationEntity.migrationTableFactory(this.parent.database);
@@ -75,4 +77,10 @@ export class ModelContainer extends Container<typeof AppContainer> {
     this.parent.medium,
     120,
   );
+
+  readonly burgerSwapTransitTable = BurgerSwapBridgeEntity.transitTableFactory(
+    this.parent.database,
+  );
+
+  readonly burgerSwapTransitService = BurgerSwapBridgeService.factory(this.burgerSwapTransitTable);
 }

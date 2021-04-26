@@ -1,4 +1,4 @@
-import { isEthAddress } from '@models/types';
+import { isEthAddress, isEthTxHash } from '@models/types';
 import dayjs from 'dayjs';
 import {
   GraphQLError,
@@ -41,6 +41,16 @@ export const addressScalar = new GraphQLScalarType({
   description: 'Ethereum wallet address',
   parseValue: (value: string) => {
     if (!isEthAddress(value)) throw new GraphQLParseError('Address', value);
+
+    return value.toLowerCase();
+  },
+});
+
+export const txHashScalar = new GraphQLScalarType({
+  name: 'TxHashType',
+  description: 'Ethereum transaction hash',
+  parseValue: (value: string) => {
+    if (!isEthTxHash(value)) throw new GraphQLParseError('TxHash', value);
 
     return value.toLowerCase();
   },

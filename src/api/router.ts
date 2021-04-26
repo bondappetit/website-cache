@@ -16,6 +16,7 @@ import { uniswapPairPayload, uniswapPairType } from './graphql/uniswapPair';
 import { addressScalar } from './graphql/types';
 import { currentNetwork } from './middlewares/currentNetwork';
 import { stakingPayload, stakingType } from './graphql/staking';
+import * as BurgerSwapBridge from './graphql/burgerSwap/bridge';
 import { Staking } from '@models/Staking/Entity';
 import BigNumber from 'bignumber.js';
 import { mediumPostType } from './graphql/medium';
@@ -224,6 +225,24 @@ export function use({ server, express }: WebServer) {
             type: GraphQLNonNull(GraphQLList(GraphQLNonNull(mediumPostType))),
             resolve: async () => {
               return container.model.mediumPostService().findAll();
+            },
+          },
+        },
+      }),
+      mutation: new GraphQLObjectType<undefined, Request>({
+        name: 'Mutation',
+        fields: {
+          addBurgerSwapBridgeTransit: {
+            type: GraphQLNonNull(BurgerSwapBridge.transitType),
+            args: {
+              input: {
+                type: GraphQLNonNull(BurgerSwapBridge.transitInput),
+              },
+            },
+            resolve: (root, { input }, { currentNetwork }) => {
+              return container.model
+                .burgerSwapTransitService()
+                .add(currentNetwork, input.tx, input.type, input.owner);
             },
           },
         },
