@@ -54,7 +54,7 @@ export class ModelContainer extends Container<typeof AppContainer> {
     this.parent.ethereum,
     this.tokenService,
     this.uniswapLPService,
-    0,
+    30,
   );
 
   readonly stakingUserTable = StakingUserEntity.stakingUserTableFactory(this.parent.database);
