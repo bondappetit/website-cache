@@ -5,6 +5,8 @@ import * as Express from '@services/WebServer/Express';
 import * as Database from '@services/Database/Postgresql';
 import * as Web3 from '@services/Ethereum/Web3';
 import * as Network from '@services/Network/Network';
+import * as PriceFeed from '@services/PriceFeed';
+import * as Medium from '@services/Medium/Rss';
 import config from './config';
 
 class AppContainer extends Container<typeof config> {
@@ -14,9 +16,13 @@ class AppContainer extends Container<typeof config> {
 
   readonly database = singleton(Database.factory(this.parent.container.database));
 
-  readonly ethereum = singleton(Web3.httpFactory(this.parent.container.ethereum));
+  readonly ethereum = Web3.networkResolverHttpFactory(this.parent.container.ethereum);
 
   readonly network = Network.factory;
+
+  readonly priceFeed = PriceFeed.factory(this.parent.container.priceFeed);
+
+  readonly medium = Medium.factory(this.parent.container.medium.url);
 
   readonly model = new ModelContainer(this);
 }

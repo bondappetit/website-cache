@@ -18,6 +18,7 @@ import { currentNetwork } from './middlewares/currentNetwork';
 import { stakingPayload, stakingType } from './graphql/staking';
 import { Staking } from '@models/Staking/Entity';
 import BigNumber from 'bignumber.js';
+import { mediumPostType } from './graphql/medium';
 
 export function use({ server, express }: WebServer) {
   const apollo = new ApolloServer({
@@ -216,6 +217,12 @@ export function use({ server, express }: WebServer) {
               );
 
               return stakings.filter((staking) => staking !== undefined);
+            },
+          },
+          mediumPostList: {
+            type: GraphQLNonNull(GraphQLList(GraphQLNonNull(mediumPostType))),
+            resolve: async () => {
+              return container.model.mediumPostService().findAll();
             },
           },
         },

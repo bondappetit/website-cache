@@ -17,6 +17,14 @@ export function factory(networkId: number) {
 export class Network {
   constructor(readonly data: typeof networks.main) {}
 
+  get id() {
+    return this.data.networkId;
+  }
+
+  get sid() {
+    return this.id.toString();
+  }
+
   private normalizeAsset(asset: typeof networks.main.assets.DAI | undefined) {
     if (!asset) return undefined;
 

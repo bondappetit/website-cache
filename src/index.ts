@@ -7,10 +7,7 @@ container.model
   .up()
   .then(() => {
     const web = container.webServer();
-    web.express.get('/', async (req, res) => {
-      const blockNumber = await container.ethereum().eth.getBlockNumber();
-      res.send(blockNumber.toString());
-    });
+    web.express.get('/', async (req, res) => res.send('ok'));
     router.use(web);
 
     web.listen().then(({ port }) => container.logger().info(`Listen ${port}`));

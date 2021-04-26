@@ -2,27 +2,30 @@ import { EthAddress } from '@models/types';
 import { Factory } from '@services/Container';
 import { Logger } from '@services/Logger/Logger';
 import { Network } from '@services/Network/Network';
+import * as PriceFeed from '@services/PriceFeed';
 import dayjs from 'dayjs';
-import Web3 from 'web3';
 import { Token, TokenTable } from './Entity';
 import ERC20 from '@bondappetit/networks/abi/ERC20.json';
 import { AbiItem } from 'web3-utils';
 import axios from 'axios';
+import { NetworkResolverHttp } from '@services/Ethereum/Web3';
 
 export function factory(
   logger: Factory<Logger>,
   table: Factory<TokenTable>,
-  web3: Factory<Web3>,
+  web3Resolver: NetworkResolverHttp,
+  getPriceFeed: PriceFeed.Factory,
   ttl: number,
 ) {
-  return () => new TokenService(logger, table, web3(), ttl);
+  return () => new TokenService(logger, table, web3Resolver, getPriceFeed, ttl);
 }
 
 export class TokenService {
   constructor(
     readonly logger: Factory<Logger> = logger,
     readonly table: Factory<TokenTable> = table,
-    readonly web3: Web3 = web3,
+    readonly web3Resolver: NetworkResolverHttp = web3Resolver,
+    readonly getPriceFeed: PriceFeed.Factory = getPriceFeed,
     readonly ttl: number = ttl,
   ) {}
 
@@ -69,12 +72,15 @@ export class TokenService {
   async find(network: Network, address: EthAddress): Promise<Token | undefined> {
     const where = {
       address,
-      network: network.data.networkId,
+      network: network.id,
     };
     const cached = await this.table().where(where).first();
     if (cached && cached.updatedAt >= dayjs().subtract(this.ttl, 'seconds').toDate()) return cached;
 
-    const contract = new this.web3.eth.Contract(ERC20.abi as AbiItem[], address);
+    const web3 = this.web3Resolver.get(network.sid);
+    if (!web3) return undefined;
+
+    const contract = new web3.eth.Contract(ERC20.abi as AbiItem[], address);
     try {
       const totalSupply = await contract.methods.totalSupply().call();
 
@@ -85,12 +91,15 @@ export class TokenService {
       };
 
       try {
-        const { priceUSD, dailyVolumeUSD, totalLiquidityUSD } = (await this.getLastDayTokenStat(
+        let { priceUSD, dailyVolumeUSD, totalLiquidityUSD } = (await this.getLastDayTokenStat(
           address,
         )) ?? { priceUSD: '0', dailyVolumeUSD: '0', totalLiquidityUSD: '0' };
+        const priceFeed = this.getPriceFeed(network.sid, address);
+        if (priceFeed) priceUSD = await priceFeed(priceUSD);
+
         const token = {
           address,
-          network: network.data.networkId,
+          network: network.id,
           name: name ?? (await contract.methods.name().call()),
           symbol: symbol ?? (await contract.methods.symbol().call()),
           decimals: decimals ?? parseInt(await contract.methods.decimals().call(), 10),
@@ -111,7 +120,8 @@ export class TokenService {
         this.logger().error(`Invalid uniswap API request: ${e}`);
         return undefined;
       }
-    } catch {
+    } catch(e) {
+      this.logger().error(e)
       return undefined;
     }
   }

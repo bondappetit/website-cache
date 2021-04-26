@@ -1,9 +1,18 @@
 import { Staking } from '@models/Staking/Entity';
+import { Request } from 'express';
 import BigNumber from 'bignumber.js';
-import { GraphQLNonNull, GraphQLObjectType, GraphQLString } from 'graphql';
+import container from '@container';
+import {
+  GraphQLInputObjectType,
+  GraphQLList,
+  GraphQLNonNull,
+  GraphQLObjectType,
+  GraphQLString,
+} from 'graphql';
 import { addressScalar, dateTimeType, errorType } from '../types';
+import { StakingUserSource, stakingUserType } from './user';
 
-export const stakingType = new GraphQLObjectType<Staking>({
+export const stakingType = new GraphQLObjectType<Staking, Request>({
   name: 'StakingType',
   fields: {
     address: {
@@ -136,6 +145,36 @@ export const stakingType = new GraphQLObjectType<Staking>({
         month: aprMonth,
         year: aprYear,
       }),
+    },
+    userList: {
+      type: GraphQLNonNull(GraphQLList(GraphQLNonNull(stakingUserType))),
+      args: {
+        filter: {
+          type: new GraphQLInputObjectType({
+            name: 'StakingUserListFilterInputType',
+            fields: {
+              address: {
+                type: GraphQLList(GraphQLNonNull(addressScalar)),
+                description: 'List of target wallets',
+              },
+            },
+          }),
+        },
+      },
+      resolve: async (staking, { filter }) => {
+        const { address } = filter ?? { address: [] };
+
+        if (address.length == 0) return [];
+
+        const stakingUsers = await Promise.all<StakingUserSource & { user: undefined }>(
+          address.map(async (address: string) => ({
+            staking,
+            user: await container.model.stakingUserService().find(staking, address),
+          })),
+        );
+
+        return stakingUsers.filter(({ user }) => user !== undefined);
+      },
     },
   },
 });

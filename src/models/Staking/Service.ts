@@ -1,6 +1,5 @@
 import { Factory } from '@services/Container';
 import { Logger } from '@services/Logger/Logger';
-import Web3 from 'web3';
 import { Staking, StakingTable } from './Entity';
 import BigNumber from 'bignumber.js';
 import dayjs from 'dayjs';
@@ -11,23 +10,24 @@ import ERC20 from '@bondappetit/networks/abi/ERC20.json';
 import { AbiItem } from 'web3-utils';
 import { TokenService } from '@models/Token/Service';
 import { UniswapLiquidityPoolService } from '@models/UniswapLiquidityPool/Service';
+import { NetworkResolverHttp } from '@services/Ethereum/Web3';
 
 export function factory(
   logger: Factory<Logger>,
   table: Factory<StakingTable>,
-  web3: Factory<Web3>,
+  web3Resolver: NetworkResolverHttp,
   tokenService: Factory<TokenService>,
   pairService: Factory<UniswapLiquidityPoolService>,
   ttl: number,
 ) {
-  return () => new StakingService(logger, table, web3(), tokenService, pairService, ttl);
+  return () => new StakingService(logger, table, web3Resolver, tokenService, pairService, ttl);
 }
 
 export class StakingService {
   constructor(
     readonly logger: Factory<Logger> = logger,
     readonly table: Factory<StakingTable> = table,
-    readonly web3: Web3 = web3,
+    readonly web3Resolver: NetworkResolverHttp = web3Resolver,
     readonly tokenService: Factory<TokenService> = tokenService,
     readonly pairService: Factory<UniswapLiquidityPoolService> = pairService,
     readonly ttl: number = ttl,
@@ -41,7 +41,10 @@ export class StakingService {
     const cached = await this.table().where(where).first();
     if (cached && cached.updatedAt >= dayjs().subtract(this.ttl, 'seconds').toDate()) return cached;
 
-    const contract = new this.web3.eth.Contract(StakingABI.abi as AbiItem[], address);
+    const web3 = this.web3Resolver.get(network.sid);
+    if (!web3) return undefined;
+
+    const contract = new web3.eth.Contract(StakingABI.abi as AbiItem[], address);
     try {
       const [
         currentBlockNumber,
@@ -54,7 +57,7 @@ export class StakingService {
         stakingEndBlock,
         unstakingStartBlock,
       ] = await Promise.all([
-        this.web3.eth.getBlockNumber(),
+        web3.eth.getBlockNumber(),
         contract.methods.rewardsToken().call(),
         contract.methods.stakingToken().call(),
         contract.methods.totalSupply().call(),
@@ -64,11 +67,8 @@ export class StakingService {
         contract.methods.stakingEndBlock().call(),
         contract.methods.unstakingStartBlock().call(),
       ]);
-      const rewardTokenContract = new this.web3.eth.Contract(
-        ERC20.abi as AbiItem[],
-        rewardTokenAddress,
-      );
-      const stakingTokenContract = new this.web3.eth.Contract(
+      const rewardTokenContract = new web3.eth.Contract(ERC20.abi as AbiItem[], rewardTokenAddress);
+      const stakingTokenContract = new web3.eth.Contract(
         ERC20.abi as AbiItem[],
         stakingTokenAddress,
       );
@@ -83,18 +83,26 @@ export class StakingService {
         this.tokenService().find(network, rewardTokenAddress.toLowerCase()),
         this.pairService().find(network, stakingTokenAddress.toLowerCase()),
       ]);
-      const rewardTokenPriceUSD = rewardToken?.priceUSD ?? '0';
-      const stakingTokenPriceUSD = new BigNumber(stakingToken?.totalLiquidityUSD ?? '0')
-        .div(stakingToken?.totalSupply ?? '1')
-        .toString();
-      const aprPerBlock = new BigNumber(rewardRate)
+      const rewardTokenPriceUSD = new BigNumber(rewardToken?.priceUSD ?? '0');
+      let stakingTokenPriceUSD = new BigNumber(stakingToken?.totalLiquidityUSD ?? '0').div(
+        stakingToken?.totalSupply ?? '0',
+      );
+      if (stakingTokenPriceUSD.isNaN()) stakingTokenPriceUSD = new BigNumber(0);
+      let aprPerBlock = new BigNumber(rewardRate)
         .div(new BigNumber(10).pow(rewardTokenDecimals))
         .multipliedBy(rewardTokenPriceUSD)
         .div(new BigNumber(stakingToken?.totalSupply ?? '0').multipliedBy(stakingTokenPriceUSD));
-      const blocksPerDay = new BigNumber(60)
+      if (aprPerBlock.isNaN()) aprPerBlock = new BigNumber(0);
+      let blocksPerDay = new BigNumber(60)
         .div(network.data.averageBlockTime)
         .multipliedBy(60)
         .multipliedBy(24);
+      if (blocksPerDay.isNaN()) blocksPerDay = new BigNumber(0);
+      let blocksPerHour = new BigNumber(60)
+        .div(network.data.averageBlockTime)
+        .multipliedBy(60)
+        .multipliedBy(24);
+      if (blocksPerHour.isNaN()) blocksPerHour = new BigNumber(0);
 
       const staking = {
         address,
@@ -105,11 +113,7 @@ export class StakingService {
         stakingTokenDecimals,
         totalSupply,
         blockPoolRate: rewardRate,
-        dailyPoolRate: new BigNumber(rewardRate)
-          .multipliedBy(
-            new BigNumber(60).div(network.data.averageBlockTime).multipliedBy(60).multipliedBy(24),
-          )
-          .toFixed(0),
+        dailyPoolRate: new BigNumber(rewardRate).multipliedBy(blocksPerHour).toFixed(0),
         stakingEndBlock: stakingEndBlock !== '0' ? stakingEndBlock : null,
         stakingEndDate:
           stakingEndBlock !== '0'

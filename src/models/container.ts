@@ -9,6 +9,10 @@ import * as UniswapLiquidityPoolEntity from './UniswapLiquidityPool/Entity';
 import * as UniswapLiquidityPoolService from './UniswapLiquidityPool/Service';
 import * as StakingEntity from './Staking/Entity';
 import * as StakingService from './Staking/Service';
+import * as StakingUserEntity from './Staking/User/Entity';
+import * as StakingUserService from './Staking/User/Service';
+import * as MediumEntity from './Medium/Entity';
+import * as MediumService from './Medium/Service';
 
 export class ModelContainer extends Container<typeof AppContainer> {
   readonly migrationTable = MigrationEntity.migrationTableFactory(this.parent.database);
@@ -28,6 +32,7 @@ export class ModelContainer extends Container<typeof AppContainer> {
     this.parent.logger,
     this.tokenTable,
     this.parent.ethereum,
+    this.parent.priceFeed,
     15,
   );
 
@@ -49,6 +54,25 @@ export class ModelContainer extends Container<typeof AppContainer> {
     this.parent.ethereum,
     this.tokenService,
     this.uniswapLPService,
-    30,
+    0,
+  );
+
+  readonly stakingUserTable = StakingUserEntity.stakingUserTableFactory(this.parent.database);
+
+  readonly stakingUserService = StakingUserService.factory(
+    this.parent.logger,
+    this.stakingUserTable,
+    this.parent.ethereum,
+    15,
+  );
+
+  readonly mediumPostTable = MediumEntity.mediumPostTableFactory(this.parent.database);
+
+  readonly mediumPostService = MediumService.factory(
+    this.parent.logger,
+    this.parent.database,
+    this.mediumPostTable,
+    this.parent.medium,
+    120,
   );
 }
