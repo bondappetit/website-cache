@@ -2,6 +2,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 import * as PriceFeed from '../services/PriceFeed';
 import networks from '@bondappetit/networks';
+import stakingRewardHistory from './stakingRewardHistory.config';
 
 export default {
   container: {
@@ -16,7 +17,11 @@ export default {
     },
     ethereum: [
       {
-        networks: [networks.main.networkId, networks.ropsten.networkId, networks.development.networkId],
+        networks: [
+          networks.main.networkId,
+          networks.ropsten.networkId,
+          networks.development.networkId,
+        ],
         host: process.env.ETH_NODE ?? '',
       },
       {
@@ -55,6 +60,7 @@ export default {
     ] as PriceFeed.Config[],
     medium: {
       url: process.env.MEDIUM ?? '',
-    }
+    },
   },
+  stakingRewardHistory,
 };

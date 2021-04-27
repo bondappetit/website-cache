@@ -113,6 +113,8 @@ export class StakingService {
         stakingTokenDecimals,
         totalSupply,
         blockPoolRate: rewardRate,
+        periodFinish,
+        rewardsDuration,
         dailyPoolRate: new BigNumber(rewardRate).multipliedBy(blocksPerHour).toFixed(0),
         stakingEndBlock: stakingEndBlock !== '0' ? stakingEndBlock : null,
         stakingEndDate:
@@ -157,7 +159,7 @@ export class StakingService {
 
       return staking;
     } catch (e) {
-      this.logger().error(e.toString());
+      this.logger().error(`Invalid staking contract "${network.id}:${address}" request: ${e}`);
       return undefined;
     }
   }

@@ -7,6 +7,8 @@ export interface Staking {
   rewardTokenDecimals: number;
   stakingToken: string;
   stakingTokenDecimals: number;
+  rewardsDuration: string;
+  periodFinish: string;
   totalSupply: string;
   blockPoolRate: string;
   dailyPoolRate: string;

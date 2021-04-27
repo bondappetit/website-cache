@@ -60,7 +60,9 @@ export class StakingUserService {
 
       return stakingUser;
     } catch (e) {
-      this.logger().error(e.toString());
+      this.logger().error(
+        `Invalid staking user "${staking.network}:${staking.address}:${address}" request: ${e}`,
+      );
       return undefined;
     }
   }

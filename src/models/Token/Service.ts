@@ -117,11 +117,11 @@ export class TokenService {
 
         return token;
       } catch (e) {
-        this.logger().error(`Invalid uniswap API request: ${e}`);
+        this.logger().error(`Invalid uniswap API "${network.id}:${address}" request: ${e}`);
         return undefined;
       }
-    } catch(e) {
-      this.logger().error(e)
+    } catch (e) {
+      this.logger().error(`Invalid token contract "${network.id}:${address}" request: ${e}`);
       return undefined;
     }
   }

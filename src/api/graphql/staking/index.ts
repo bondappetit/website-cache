@@ -11,6 +11,45 @@ import {
 } from 'graphql';
 import { addressScalar, dateTimeType, errorType } from '../types';
 import { StakingUserSource, stakingUserType } from './user';
+import { RewardHistory } from '@models/Staking/RewardHistory/Service';
+
+export const rewardHistoryType = new GraphQLObjectType<RewardHistory, Request>({
+  name: 'StakingRewardHistoryType',
+  fields: {
+    blockNumber: {
+      type: GraphQLNonNull(GraphQLString),
+      description: 'History block number',
+    },
+    totalReward: {
+      type: GraphQLNonNull(GraphQLString),
+      description: 'Distributable reward',
+    },
+    totalEarned: {
+      type: GraphQLNonNull(GraphQLString),
+      description: 'Distributed reward',
+    },
+  },
+});
+
+export const periodStart = ({ periodFinish, rewardsDuration }: Staking) => {
+  if (periodFinish === '0') return '0';
+
+  return new BigNumber(periodFinish).minus(rewardsDuration).toString();
+};
+
+export const rewardForDuration = ({ blockPoolRate, rewardsDuration }: Staking) => {
+  return new BigNumber(blockPoolRate).multipliedBy(rewardsDuration).toString();
+};
+
+export const earned = (staking: Staking, { currentBlockNumber }: Request) => {
+  const start = periodStart(staking);
+  if (start === '0') return '0';
+
+  return new BigNumber(currentBlockNumber)
+    .minus(start)
+    .multipliedBy(staking.blockPoolRate)
+    .toString();
+};
 
 export const stakingType = new GraphQLObjectType<Staking, Request>({
   name: 'StakingType',
@@ -29,6 +68,51 @@ export const stakingType = new GraphQLObjectType<Staking, Request>({
       resolve: ({ totalSupply, stakingTokenDecimals }) => {
         return new BigNumber(totalSupply)
           .div(new BigNumber(10).pow(stakingTokenDecimals))
+          .toString();
+      },
+    },
+    periodStart: {
+      type: GraphQLNonNull(GraphQLString),
+      description: 'Block number of staking period start',
+      resolve: (staking) => periodStart(staking),
+    },
+    periodFinish: {
+      type: GraphQLNonNull(GraphQLString),
+      description: 'Block number of staking period finish',
+    },
+    rewardsDuration: {
+      type: GraphQLNonNull(GraphQLString),
+      description: 'Rewards duration',
+    },
+    rewardForDuration: {
+      type: GraphQLNonNull(GraphQLString),
+      description: 'Reward for duration',
+      resolve: (staking: Staking) => {
+        return rewardForDuration(staking);
+      },
+    },
+    rewardForDurationFloat: {
+      type: GraphQLNonNull(GraphQLString),
+      description: 'Reward for duration normalize',
+      resolve: (staking: Staking) => {
+        return new BigNumber(rewardForDuration(staking))
+          .div(new BigNumber(10).pow(staking.rewardTokenDecimals))
+          .toString();
+      },
+    },
+    earned: {
+      type: GraphQLNonNull(GraphQLString),
+      description: 'Already earned',
+      resolve: (staking, args, request) => {
+        return earned(staking, request);
+      },
+    },
+    earnedFloat: {
+      type: GraphQLNonNull(GraphQLString),
+      description: 'Already earned normalize',
+      resolve: (staking, args, request) => {
+        return new BigNumber(earned(staking, request))
+          .div(new BigNumber(10).pow(staking.rewardTokenDecimals))
           .toString();
       },
     },
@@ -175,6 +259,10 @@ export const stakingType = new GraphQLObjectType<Staking, Request>({
 
         return stakingUsers.filter(({ user }) => user !== undefined);
       },
+    },
+    rewardHistory: {
+      type: GraphQLNonNull(GraphQLList(GraphQLNonNull(rewardHistoryType))),
+      resolve: (staking) => container.model.stakingRewardHistory().find(staking),
     },
   },
 });

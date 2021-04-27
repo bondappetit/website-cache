@@ -11,6 +11,7 @@ import * as StakingEntity from './Staking/Entity';
 import * as StakingService from './Staking/Service';
 import * as StakingUserEntity from './Staking/User/Entity';
 import * as StakingUserService from './Staking/User/Service';
+import * as StakingRewardHistory from './Staking/RewardHistory/Service';
 import * as MediumEntity from './Medium/Entity';
 import * as MediumService from './Medium/Service';
 import * as BurgerSwapBridgeEntity from './BurgerSwap/Bridge/Entity';
@@ -66,6 +67,10 @@ export class ModelContainer extends Container<typeof AppContainer> {
     this.stakingUserTable,
     this.parent.ethereum,
     15,
+  );
+
+  readonly stakingRewardHistory = singleton(
+    () => new StakingRewardHistory.RewardHistoryService(this.parent.parent.stakingRewardHistory),
   );
 
   readonly mediumPostTable = MediumEntity.mediumPostTableFactory(this.parent.database);

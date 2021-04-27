@@ -7,6 +7,7 @@ import * as Web3 from '@services/Ethereum/Web3';
 import * as Network from '@services/Network/Network';
 import * as PriceFeed from '@services/PriceFeed';
 import * as Medium from '@services/Medium/Rss';
+import { MemoryCache } from '@services/Cache/Memory';
 import config from './config';
 
 class AppContainer extends Container<typeof config> {
@@ -23,6 +24,8 @@ class AppContainer extends Container<typeof config> {
   readonly priceFeed = PriceFeed.factory(this.parent.container.priceFeed);
 
   readonly medium = Medium.factory(this.parent.container.medium.url);
+
+  readonly memoryCache = singleton(() => new MemoryCache());
 
   readonly model = new ModelContainer(this);
 }
