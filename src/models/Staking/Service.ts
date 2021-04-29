@@ -51,7 +51,6 @@ export class StakingService {
         rewardTokenAddress,
         stakingTokenAddress,
         totalSupply,
-        rewardRate,
         periodFinish,
         rewardsDuration,
         stakingEndBlock,
@@ -61,12 +60,15 @@ export class StakingService {
         contract.methods.rewardsToken().call(),
         contract.methods.stakingToken().call(),
         contract.methods.totalSupply().call(),
-        contract.methods.rewardRate().call(),
         contract.methods.periodFinish().call(),
         contract.methods.rewardsDuration().call(),
         contract.methods.stakingEndBlock().call(),
         contract.methods.unstakingStartBlock().call(),
       ]);
+      let rewardRate = await contract.methods.rewardRate().call();
+      if (new BigNumber(periodFinish).lt(currentBlockNumber)) {
+        rewardRate = '0';
+      }
       const rewardTokenContract = new web3.eth.Contract(ERC20.abi as AbiItem[], rewardTokenAddress);
       const stakingTokenContract = new web3.eth.Contract(
         ERC20.abi as AbiItem[],
