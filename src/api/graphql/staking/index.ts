@@ -4,6 +4,7 @@ import BigNumber from 'bignumber.js';
 import container from '@container';
 import {
   GraphQLInputObjectType,
+  GraphQLInt,
   GraphQLList,
   GraphQLNonNull,
   GraphQLObjectType,
@@ -57,6 +58,22 @@ export const stakingType = new GraphQLObjectType<Staking, Request>({
     address: {
       type: GraphQLNonNull(addressScalar),
       description: 'Staking contract address',
+    },
+    stakingToken: {
+      type: GraphQLNonNull(addressScalar),
+      description: 'Staking token address',
+    },
+    stakingTokenDecimals: {
+      type: GraphQLNonNull(GraphQLInt),
+      description: 'Staking token decimals',
+    },
+    rewardToken: {
+      type: GraphQLNonNull(addressScalar),
+      description: 'Reward token address',
+    },
+    rewardTokenDecimals: {
+      type: GraphQLNonNull(GraphQLInt),
+      description: 'Reward token decimals',
     },
     totalSupply: {
       type: GraphQLNonNull(GraphQLString),
