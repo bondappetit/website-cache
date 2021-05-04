@@ -5,6 +5,7 @@ import dayjs from 'dayjs';
 import axios from 'axios';
 import { EthAddress } from '@models/types';
 import { Network } from '@services/Network/Network';
+import { networkResolverHttpFactory } from '@services/Ethereum/Web3';
 
 export function factory(
   logger: Factory<Logger>,
@@ -21,10 +22,17 @@ export class UniswapLiquidityPoolService {
     readonly ttl: number = ttl,
   ) {}
 
-  async getLastDayPairStat(address: EthAddress) {
+  async getLastDayPairStat(network: Network, address: EthAddress) {
+    const urlMap: { [k: number]: string } = {
+      1: 'https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v2',
+      56: 'https://api.thegraph.com/subgraphs/name/bscnodes/pancakeswap',
+    };
+    const url = urlMap[network.id];
+    if (!url) return;
+
     const res = await axios({
       method: 'post',
-      url: 'https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v2',
+      url,
       headers: {
         'Content-Type': 'application/json',
       },
@@ -69,6 +77,7 @@ export class UniswapLiquidityPoolService {
 
     try {
       const { totalSupply, dailyVolumeUSD, totalLiquidityUSD } = (await this.getLastDayPairStat(
+        network,
         address,
       )) ?? { totalSupply: '0', dailyVolumeUSD: '0', totalLiquidityUSD: '0' };
       const pair = {

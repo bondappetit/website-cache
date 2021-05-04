@@ -29,10 +29,17 @@ export class TokenService {
     readonly ttl: number = ttl,
   ) {}
 
-  async getLastDayTokenStat(address: EthAddress) {
+  async getLastDayTokenStat(network: Network, address: EthAddress) {
+    const urlMap: { [k: number]: string } = {
+      1: 'https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v2',
+      56: 'https://api.thegraph.com/subgraphs/name/bscnodes/pancakeswap',
+    };
+    const url = urlMap[network.id];
+    if (!url) return;
+
     const res = await axios({
       method: 'post',
-      url: 'https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v2',
+      url,
       headers: {
         'Content-Type': 'application/json',
       },
@@ -92,6 +99,7 @@ export class TokenService {
 
       try {
         let { priceUSD, dailyVolumeUSD, totalLiquidityUSD } = (await this.getLastDayTokenStat(
+          network,
           address,
         )) ?? { priceUSD: '0', dailyVolumeUSD: '0', totalLiquidityUSD: '0' };
         const priceFeed = this.getPriceFeed(network.sid, address);
