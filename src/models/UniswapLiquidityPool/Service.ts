@@ -6,6 +6,7 @@ import axios from 'axios';
 import { EthAddress } from '@models/types';
 import { Network } from '@services/Network/Network';
 import { networkResolverHttpFactory } from '@services/Ethereum/Web3';
+import BigNumber from 'bignumber.js';
 
 export function factory(
   logger: Factory<Logger>,
@@ -15,6 +16,11 @@ export function factory(
   return () => new UniswapLiquidityPoolService(logger, table, ttl);
 }
 
+const thegraphUrlMap: { [k: number]: string } = {
+  1: 'https://api.thegraph.com/subgraphs/name/ianlapham/uniswapv2',
+  56: 'https://api.thegraph.com/subgraphs/name/bscnodes/pancakeswap',
+};
+
 export class UniswapLiquidityPoolService {
   constructor(
     readonly logger: Factory<Logger> = logger,
@@ -23,46 +29,77 @@ export class UniswapLiquidityPoolService {
   ) {}
 
   async getLastDayPairStat(network: Network, address: EthAddress) {
-    const urlMap: { [k: number]: string } = {
-      1: 'https://api.thegraph.com/subgraphs/name/ianlapham/uniswapv2',
-      56: 'https://api.thegraph.com/subgraphs/name/bscnodes/pancakeswap',
-    };
-    const url = urlMap[network.id];
+    const url = thegraphUrlMap[network.id];
     if (!url) return;
 
-    const res = await axios({
-      method: 'post',
-      url,
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      data: {
-        query: `{
-            pairDayDatas(
-                first:3
-                orderBy:date
+    const [dayRes, hourRes] = await Promise.all([
+      axios({
+        method: 'post',
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        data: {
+          query: `{
+              pairDayDatas(
+                  first:3
+                  orderBy:date
+                  orderDirection:desc
+                  where:{pairAddress:"${address}"}
+              ) {
+                  totalSupply
+                  dailyVolumeUSD
+                  reserveUSD
+              }
+          }`,
+        },
+      }),
+      axios({
+        method: 'post',
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        data: {
+          query: `{
+              pairHourDatas(
+                orderBy:hourStartUnix
                 orderDirection:desc
-                where:{pairAddress:"${address}"}
+                where:{
+                  pair:"${address}"
+                  hourStartUnix_gte:${dayjs().add(-24, 'hours').startOf('hour').unix()}
+                }
             ) {
-                dailyVolumeUSD
-                totalSupply
-                reserveUSD
+              hourlyVolumeUSD
             }
-        }`,
-      },
-    });
-    if (res.status !== 200) throw Error(res.statusText);
+          }`,
+        },
+      }),
+    ]);
+    if (dayRes.status !== 200) throw Error(dayRes.statusText);
+    if (hourRes.status !== 200) throw Error(hourRes.statusText);
 
     const {
       data: {
         data: { pairDayDatas },
       },
-    } = res;
+    } = dayRes;
     if (pairDayDatas.length == 0) return;
+
+    const {
+      data: {
+        data: { pairHourDatas },
+      },
+    } = hourRes;
+    const dailyVolumeUSD = pairHourDatas.reduce(
+      (sum: BigNumber, { hourlyVolumeUSD }: { hourlyVolumeUSD: string }): BigNumber =>
+        sum.plus(hourlyVolumeUSD),
+      new BigNumber(0),
+    );
 
     return {
       totalSupply: pairDayDatas[0].totalSupply,
-      dailyVolumeUSD: pairDayDatas[0].dailyVolumeUSD,
+      dailyVolumeUSD: dailyVolumeUSD.toString(10),
       totalLiquidityUSD: pairDayDatas[0].reserveUSD,
     };
   }
