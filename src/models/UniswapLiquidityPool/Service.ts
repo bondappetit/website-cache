@@ -24,7 +24,7 @@ export class UniswapLiquidityPoolService {
 
   async getLastDayPairStat(network: Network, address: EthAddress) {
     const urlMap: { [k: number]: string } = {
-      1: 'https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v2',
+      1: 'https://api.thegraph.com/subgraphs/name/ianlapham/uniswapv2',
       56: 'https://api.thegraph.com/subgraphs/name/bscnodes/pancakeswap',
     };
     const url = urlMap[network.id];
