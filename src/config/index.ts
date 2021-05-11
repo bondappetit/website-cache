@@ -28,6 +28,10 @@ export default {
         networks: [networks.mainBSC.networkId],
         host: process.env.BSC_NODE ?? '',
       },
+      {
+        networks: [networks.testnetBSC.networkId],
+        host: process.env.BSC_TESTNET_NODE ?? '',
+      },
     ],
     priceFeed: [
       {
