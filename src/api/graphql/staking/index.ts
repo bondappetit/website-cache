@@ -35,11 +35,11 @@ export const rewardHistoryType = new GraphQLObjectType<RewardHistory, Request>({
 export const periodStart = ({ periodFinish, rewardsDuration }: Staking) => {
   if (periodFinish === '0') return '0';
 
-  return new BigNumber(periodFinish).minus(rewardsDuration).toString();
+  return new BigNumber(periodFinish).minus(rewardsDuration).toString(10);
 };
 
 export const rewardForDuration = ({ blockPoolRate, rewardsDuration }: Staking) => {
-  return new BigNumber(blockPoolRate).multipliedBy(rewardsDuration).toString();
+  return new BigNumber(blockPoolRate).multipliedBy(rewardsDuration).toString(10);
 };
 
 export const earned = (staking: Staking, { currentBlockNumber }: Request) => {
@@ -49,7 +49,7 @@ export const earned = (staking: Staking, { currentBlockNumber }: Request) => {
   return new BigNumber(currentBlockNumber)
     .minus(start)
     .multipliedBy(staking.blockPoolRate)
-    .toString();
+    .toString(10);
 };
 
 export const stakingType = new GraphQLObjectType<Staking, Request>({
@@ -85,7 +85,7 @@ export const stakingType = new GraphQLObjectType<Staking, Request>({
       resolve: ({ totalSupply, stakingTokenDecimals }) => {
         return new BigNumber(totalSupply)
           .div(new BigNumber(10).pow(stakingTokenDecimals))
-          .toString();
+          .toString(10);
       },
     },
     periodStart: {
@@ -114,7 +114,7 @@ export const stakingType = new GraphQLObjectType<Staking, Request>({
       resolve: (staking: Staking) => {
         return new BigNumber(rewardForDuration(staking))
           .div(new BigNumber(10).pow(staking.rewardTokenDecimals))
-          .toString();
+          .toString(10);
       },
     },
     earned: {
@@ -130,7 +130,7 @@ export const stakingType = new GraphQLObjectType<Staking, Request>({
       resolve: (staking, args, request) => {
         return new BigNumber(earned(staking, request))
           .div(new BigNumber(10).pow(staking.rewardTokenDecimals))
-          .toString();
+          .toString(10);
       },
     },
     poolRate: {
@@ -146,7 +146,7 @@ export const stakingType = new GraphQLObjectType<Staking, Request>({
               type: GraphQLNonNull(GraphQLString),
               description: 'Pool rate per block normalize',
               resolve: ({ block, decimals }) => {
-                return new BigNumber(block).div(new BigNumber(10).pow(decimals)).toString();
+                return new BigNumber(block).div(new BigNumber(10).pow(decimals)).toString(10);
               },
             },
             daily: {
@@ -157,7 +157,7 @@ export const stakingType = new GraphQLObjectType<Staking, Request>({
               type: GraphQLNonNull(GraphQLString),
               description: 'Pool rate per day normalize',
               resolve: ({ daily, decimals }) => {
-                return new BigNumber(daily).div(new BigNumber(10).pow(decimals)).toString();
+                return new BigNumber(daily).div(new BigNumber(10).pow(decimals)).toString(10);
               },
             },
           },

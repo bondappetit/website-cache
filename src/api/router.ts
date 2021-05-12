@@ -17,6 +17,7 @@ import { addressScalar } from './graphql/types';
 import { currentNetwork } from './middlewares/currentNetwork';
 import { stakingPayload, stakingType } from './graphql/staking';
 import * as BurgerSwapBridge from './graphql/burgerSwap/bridge';
+import { walletType, walletPayload } from './graphql/wallet';
 import { Staking } from '@models/Staking/Entity';
 import BigNumber from 'bignumber.js';
 import { mediumPostType } from './graphql/medium';
@@ -225,6 +226,58 @@ export function use({ server, express }: WebServer) {
             type: GraphQLNonNull(GraphQLList(GraphQLNonNull(mediumPostType))),
             resolve: async () => {
               return container.model.mediumPostService().findAll();
+            },
+          },
+          wallet: {
+            type: GraphQLNonNull(walletPayload),
+            args: {
+              filter: {
+                type: GraphQLNonNull(
+                  new GraphQLInputObjectType({
+                    name: 'WalletQueryFilterInputType',
+                    fields: {
+                      address: {
+                        type: GraphQLNonNull(addressScalar),
+                        description: 'Target wallet address',
+                      },
+                    },
+                  }),
+                ),
+              },
+            },
+            resolve: async (root, { filter: { address } }, { currentNetwork }) => {
+              const wallet = await container.model.walletService().find(currentNetwork, address);
+
+              return wallet ? { data: wallet } : { error: 'Wallet not found' };
+            },
+          },
+          walletList: {
+            type: GraphQLNonNull(GraphQLList(GraphQLNonNull(walletType))),
+            args: {
+              filter: {
+                type: new GraphQLInputObjectType({
+                  name: 'WalletListQueryFilterInputType',
+                  fields: {
+                    address: {
+                      type: GraphQLList(GraphQLNonNull(addressScalar)),
+                      description: 'List of target wallet addresses',
+                    },
+                  },
+                }),
+              },
+            },
+            resolve: async (root, { filter }, { currentNetwork }) => {
+              const { address } = filter ?? { address: [] };
+
+              if (address.length == 0) return [];
+
+              const wallets = await Promise.all(
+                address.map(async (address: string) =>
+                  container.model.walletService().find(currentNetwork, address),
+                ),
+              );
+
+              return wallets.filter((wallet) => wallet !== undefined);
             },
           },
         },

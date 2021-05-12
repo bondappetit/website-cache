@@ -31,7 +31,7 @@ export const stakingUserType = new GraphQLObjectType<StakingUserSource>({
       type: GraphQLNonNull(GraphQLString),
       description: 'Staking balance normalize',
       resolve: ({ user: { balance }, staking: { stakingTokenDecimals } }) => {
-        return new BigNumber(balance).div(new BigNumber(10).pow(stakingTokenDecimals)).toString();
+        return new BigNumber(balance).div(new BigNumber(10).pow(stakingTokenDecimals)).toString(10);
       },
     },
     staked: {
@@ -48,7 +48,7 @@ export const stakingUserType = new GraphQLObjectType<StakingUserSource>({
       type: GraphQLNonNull(GraphQLString),
       description: 'Earned balance normalize',
       resolve: ({ user: { earned }, staking: { rewardTokenDecimals } }) => {
-        return new BigNumber(earned).div(new BigNumber(10).pow(rewardTokenDecimals)).toString();
+        return new BigNumber(earned).div(new BigNumber(10).pow(rewardTokenDecimals)).toString(10);
       },
     },
   },

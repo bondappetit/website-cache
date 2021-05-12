@@ -16,6 +16,8 @@ import * as MediumEntity from './Medium/Entity';
 import * as MediumService from './Medium/Service';
 import * as BurgerSwapBridgeEntity from './BurgerSwap/Bridge/Entity';
 import * as BurgerSwapBridgeService from './BurgerSwap/Bridge/Service';
+import * as WalletEntity from './Wallet/Entity';
+import * as WalletService from './Wallet/Service';
 
 export class ModelContainer extends Container<typeof AppContainer> {
   readonly migrationTable = MigrationEntity.migrationTableFactory(this.parent.database);
@@ -88,4 +90,13 @@ export class ModelContainer extends Container<typeof AppContainer> {
   );
 
   readonly burgerSwapTransitService = BurgerSwapBridgeService.factory(this.burgerSwapTransitTable);
+
+  readonly walletTable = WalletEntity.walletTableFactory(this.parent.database);
+
+  readonly walletService = WalletService.factory(
+    this.parent.logger,
+    this.walletTable,
+    this.parent.ethereum,
+    15,
+  );
 }

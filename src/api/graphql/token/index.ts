@@ -30,7 +30,7 @@ export const tokenType = new GraphQLObjectType<Token>({
       type: GraphQLNonNull(GraphQLString),
       description: 'Token total supply normalize',
       resolve: ({ totalSupply, decimals }) => {
-        return new BigNumber(totalSupply).div(new BigNumber(10).pow(decimals)).toString();
+        return new BigNumber(totalSupply).div(new BigNumber(10).pow(decimals)).toString(10);
       },
     },
     priceUSD: {
