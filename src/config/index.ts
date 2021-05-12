@@ -19,10 +19,15 @@ export default {
       {
         networks: [
           networks.main.networkId,
-          networks.ropsten.networkId,
           networks.development.networkId,
         ],
         host: process.env.ETH_NODE ?? '',
+      },
+      {
+        networks: [
+          networks.ropsten.networkId,
+        ],
+        host: process.env.ETH_ROPSTEN_NODE ?? '',
       },
       {
         networks: [networks.mainBSC.networkId],
