@@ -1,4 +1,4 @@
-import { Staking } from '@models/Staking/Entity';
+import { Staking, StakingTokenType } from '@models/Staking/Entity';
 import { Request } from 'express';
 import BigNumber from 'bignumber.js';
 import container from '@container';
@@ -12,6 +12,8 @@ import {
 } from 'graphql';
 import { addressScalar, dateTimeType, errorType } from '../types';
 import { StakingUserSource, stakingUserType } from './user';
+import { tokenType } from '../token';
+import { uniswapPairType } from '../uniswapPair';
 import { RewardHistory } from '@models/Staking/RewardHistory/Service';
 
 export const rewardHistoryType = new GraphQLObjectType<RewardHistory, Request>({
@@ -66,6 +68,24 @@ export const stakingType = new GraphQLObjectType<Staking, Request>({
     stakingTokenDecimals: {
       type: GraphQLNonNull(GraphQLInt),
       description: 'Staking token decimals',
+    },
+    stakingTokenPlain: {
+      type: tokenType,
+      description: 'Plain staking token',
+      resolve: ({ stakingToken, stakingTokenType }, args, { currentNetwork }) => {
+        if (stakingTokenType !== StakingTokenType.Plain) return null;
+
+        return container.model.uniswapLPService().find(currentNetwork, stakingToken);
+      },
+    },
+    stakingTokenUniswap: {
+      type: uniswapPairType,
+      description: 'Uniswap LP staking token',
+      resolve: ({ stakingToken, stakingTokenType }, args, { currentNetwork }) => {
+        if (stakingTokenType !== StakingTokenType.UniswapLP) return null;
+
+        return container.model.uniswapLPService().find(currentNetwork, stakingToken);
+      },
     },
     rewardToken: {
       type: GraphQLNonNull(addressScalar),

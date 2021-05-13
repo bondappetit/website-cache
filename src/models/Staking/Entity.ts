@@ -1,5 +1,10 @@
 import { tableFactory } from '@services/Database/Entity';
 
+export enum StakingTokenType {
+  Plain = 'plain',
+  UniswapLP = 'uniswapLP',
+}
+
 export interface Staking {
   address: string;
   network: number;
@@ -7,6 +12,7 @@ export interface Staking {
   rewardTokenDecimals: number;
   stakingToken: string;
   stakingTokenDecimals: number;
+  stakingTokenType: string;
   rewardsDuration: string;
   periodFinish: string;
   totalSupply: string;

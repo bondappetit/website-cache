@@ -1,6 +1,6 @@
 import { Factory } from '@services/Container';
 import { Logger } from '@services/Logger/Logger';
-import { Staking, StakingTable } from './Entity';
+import { Staking, StakingTable, StakingTokenType } from './Entity';
 import BigNumber from 'bignumber.js';
 import dayjs from 'dayjs';
 import { Network } from '@services/Network/Network';
@@ -21,6 +21,14 @@ export function factory(
   ttl: number,
 ) {
   return () => new StakingService(logger, table, web3Resolver, tokenService, pairService, ttl);
+}
+
+export function symbolToStakingTokenType(symbol: string): StakingTokenType {
+  if (['UNI-V2', 'Cake-LP'].includes(symbol)) {
+    return StakingTokenType.UniswapLP;
+  }
+
+  return StakingTokenType.Plain;
 }
 
 export class StakingService {
@@ -77,11 +85,13 @@ export class StakingService {
       const [
         rewardTokenDecimals,
         stakingTokenDecimals,
+        stakingTokenSymbol,
         rewardToken,
         stakingToken,
       ] = await Promise.all([
         rewardTokenContract.methods.decimals().call(),
         stakingTokenContract.methods.decimals().call(),
+        stakingTokenContract.methods.symbol().call(),
         this.tokenService().find(network, rewardTokenAddress.toLowerCase()),
         this.pairService().find(network, stakingTokenAddress.toLowerCase()),
       ]);
@@ -113,6 +123,7 @@ export class StakingService {
         rewardTokenDecimals,
         stakingToken: stakingTokenAddress.toLowerCase(),
         stakingTokenDecimals,
+        stakingTokenType: symbolToStakingTokenType(stakingTokenSymbol),
         totalSupply,
         blockPoolRate: rewardRate,
         periodFinish,
