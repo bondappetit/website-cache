@@ -103,18 +103,17 @@ export class StakingService {
       let aprPerBlock = new BigNumber(rewardRate)
         .div(new BigNumber(10).pow(rewardTokenDecimals))
         .multipliedBy(rewardTokenPriceUSD)
-        .div(new BigNumber(stakingToken?.totalSupply ?? '0').multipliedBy(stakingTokenPriceUSD));
+        .div(
+          new BigNumber(totalSupply)
+            .div(new BigNumber(10).pow(stakingTokenDecimals))
+            .multipliedBy(stakingTokenPriceUSD),
+        );
       if (aprPerBlock.isNaN()) aprPerBlock = new BigNumber(0);
       let blocksPerDay = new BigNumber(60)
         .div(network.data.averageBlockTime)
         .multipliedBy(60)
         .multipliedBy(24);
       if (blocksPerDay.isNaN()) blocksPerDay = new BigNumber(0);
-      let blocksPerHour = new BigNumber(60)
-        .div(network.data.averageBlockTime)
-        .multipliedBy(60)
-        .multipliedBy(24);
-      if (blocksPerHour.isNaN()) blocksPerHour = new BigNumber(0);
 
       const staking = {
         address,
@@ -128,7 +127,7 @@ export class StakingService {
         blockPoolRate: rewardRate,
         periodFinish,
         rewardsDuration,
-        dailyPoolRate: new BigNumber(rewardRate).multipliedBy(blocksPerHour).toFixed(0),
+        dailyPoolRate: new BigNumber(rewardRate).multipliedBy(blocksPerDay).toFixed(0),
         stakingEndBlock: stakingEndBlock !== '0' ? stakingEndBlock : null,
         stakingEndDate:
           stakingEndBlock !== '0'

@@ -30,24 +30,40 @@ export function use({ server, express }: WebServer) {
         fields: {
           getTVL: {
             type: GraphQLNonNull(GraphQLString),
-            resolve: async (root, args, { currentNetwork }) => {
-              const stakingAddresses = [
-                currentNetwork.data.contracts.UsdcGovLPStaking.address,
-                currentNetwork.data.contracts.UsdcStableLPLockStaking.address,
-                currentNetwork.data.contracts.UsdnGovLPStaking.address,
-              ];
+            resolve: async () => {
+              const mainETHNetwork = container.network(1);
+              const mainBSCNetwork = container.network(56);
+
+              const stakingAddresses = {
+                [mainETHNetwork.data.networkId]: [
+                  mainETHNetwork.data.contracts.UsdcGovLPStaking.address,
+                  mainETHNetwork.data.contracts.UsdcStableLPLockStaking.address,
+                  mainETHNetwork.data.contracts.UsdnGovLPStaking.address,
+                  mainETHNetwork.data.contracts.UsdtGovLPStaking.address,
+                ],
+                [mainBSCNetwork.data.networkId]: [
+                  mainBSCNetwork.data.contracts.BnbGovLPStaking.address,
+                ],
+              };
               const stakings = await Promise.all(
-                stakingAddresses.map(async (address: string) =>
-                  container.model.stakingService().find(currentNetwork, address),
+                Object.entries(stakingAddresses).map(([chainId, addresses]) =>
+                  Promise.all(
+                    addresses.map(async (address: string) =>
+                      container.model
+                        .stakingService()
+                        .find(container.network(parseInt(chainId, 10)), address),
+                    ),
+                  ),
                 ),
               );
-              const tvl = await stakings.reduce(
-                async (sum: Promise<BigNumber>, staking: Staking | undefined) => {
+              const tvl = await ([] as Array<Staking | undefined>)
+                .concat(...stakings)
+                .reduce(async (sum: Promise<BigNumber>, staking: Staking | undefined) => {
                   if (staking === undefined) return sum;
 
                   const pair = await container.model
                     .uniswapLPService()
-                    .find(currentNetwork, staking.stakingToken);
+                    .find(container.network(staking.network), staking.stakingToken);
                   if (pair === undefined) return sum;
 
                   return (await sum).plus(
@@ -59,9 +75,7 @@ export function use({ server, express }: WebServer) {
                         ),
                       ),
                   );
-                },
-                Promise.resolve(new BigNumber(0)),
-              );
+                }, Promise.resolve(new BigNumber(0)));
 
               return tvl.toFixed(2);
             },
