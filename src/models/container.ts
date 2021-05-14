@@ -48,6 +48,8 @@ export class ModelContainer extends Container<typeof AppContainer> {
   readonly uniswapLPService = UniswapLiquidityPoolService.factory(
     this.parent.logger,
     this.uniswapLPTable,
+    this.parent.ethereum,
+    this.tokenService,
     15,
   );
 

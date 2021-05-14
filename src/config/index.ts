@@ -17,16 +17,11 @@ export default {
     },
     ethereum: [
       {
-        networks: [
-          networks.main.networkId,
-          networks.development.networkId,
-        ],
+        networks: [networks.main.networkId, networks.development.networkId],
         host: process.env.ETH_NODE ?? '',
       },
       {
-        networks: [
-          networks.ropsten.networkId,
-        ],
+        networks: [networks.ropsten.networkId],
         host: process.env.ETH_ROPSTEN_NODE ?? '',
       },
       {
@@ -64,6 +59,15 @@ export default {
           type: 'coingecko',
           currency: 'usd',
           id: 'bondappetit-gov-token',
+        },
+      },
+      {
+        networks: [networks.mainBSC.networkId],
+        token: networks.mainBSC.assets.BNB.address,
+        gateway: {
+          type: 'uniswap',
+          routerAddress: networks.mainBSC.contracts.UniswapV2Router02.address,
+          path: [networks.mainBSC.assets.BNB.address, '0xe9e7cea3dedca5984780bafc599bd69add087d56'], // BNB -> BUSD
         },
       },
     ] as PriceFeed.Config[],

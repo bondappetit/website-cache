@@ -21,7 +21,7 @@ class AppContainer extends Container<typeof config> {
 
   readonly network = Network.factory;
 
-  readonly priceFeed = PriceFeed.factory(this.parent.container.priceFeed);
+  readonly priceFeed = PriceFeed.factory(this.ethereum, this.parent.container.priceFeed);
 
   readonly medium = Medium.factory(this.parent.container.medium.url);
 
