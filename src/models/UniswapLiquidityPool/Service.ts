@@ -23,7 +23,7 @@ export function factory(
 
 const thegraphUrlMap: { [k: number]: string } = {
   1: 'https://api.thegraph.com/subgraphs/name/ianlapham/uniswapv2',
-  56: 'https://api.thegraph.com/subgraphs/name/bscnodes/pancakeswap',
+  // 56: 'https://api.thegraph.com/subgraphs/name/bscnodes/pancakeswap',
 };
 
 export class UniswapLiquidityPoolService {
