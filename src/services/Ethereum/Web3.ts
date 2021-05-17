@@ -53,3 +53,37 @@ export interface NetworkResolverHttp {
   networks: { [network: string]: Factory<Web3> };
   get(network: string | number): Web3 | null;
 }
+
+interface ContractCallOptions {
+  from?: string;
+  gasPrice?: string;
+  gas?: number;
+}
+
+interface ContractCall {
+  request(
+    options: ContractCallOptions,
+    callback?: (err: Error | null, result: string) => void,
+  ): any;
+}
+
+export function makeBatchRequest(
+  web3: Web3,
+  calls: ContractCall[],
+  options: ContractCallOptions = {},
+) {
+  const batch = new web3.BatchRequest();
+  const promises = calls.map(
+    (call) =>
+      new Promise<any>((resolve, reject) =>
+        batch.add(
+          call.request({ from: '0x0000000000000000000000000000000000000000', ...options }, (e, v) =>
+            e ? reject(e) : resolve(v),
+          ),
+        ),
+      ),
+  );
+  batch.execute();
+
+  return Promise.all(promises);
+}

@@ -7,7 +7,7 @@ import { EthAddress } from '@models/types';
 import Pair from '@bondappetit/networks/abi/IUniswapV2Pair.json';
 import { AbiItem } from 'web3-utils';
 import { Network } from '@services/Network/Network';
-import { NetworkResolverHttp } from '@services/Ethereum/Web3';
+import { NetworkResolverHttp, makeBatchRequest } from '@services/Ethereum/Web3';
 import BigNumber from 'bignumber.js';
 import { TokenService } from '@models/Token/Service';
 
@@ -124,13 +124,20 @@ export class UniswapLiquidityPoolService {
 
     const contract = new web3.eth.Contract(Pair.abi as AbiItem[], address);
     try {
-      const [totalSupply, decimals, reserves, token0Address, token1Address] = await Promise.all([
-        contract.methods.totalSupply().call(),
-        contract.methods.decimals().call(),
-        contract.methods.getReserves().call(),
-        contract.methods.token0().call(),
-        contract.methods.token1().call(),
+      const [
+        totalSupply,
+        decimals,
+        token0Address,
+        token1Address,
+        reserves,
+      ] = await makeBatchRequest(web3, [
+        contract.methods.totalSupply().call,
+        contract.methods.decimals().call,
+        contract.methods.token0().call,
+        contract.methods.token1().call,
+        contract.methods.getReserves().call,
       ]);
+
       const [token0, token1] = await Promise.all([
         this.tokenService().find(network, token0Address.toLowerCase()),
         this.tokenService().find(network, token1Address.toLowerCase()),

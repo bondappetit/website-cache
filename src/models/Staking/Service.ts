@@ -10,7 +10,7 @@ import ERC20 from '@bondappetit/networks/abi/ERC20.json';
 import { AbiItem } from 'web3-utils';
 import { TokenService } from '@models/Token/Service';
 import { UniswapLiquidityPoolService } from '@models/UniswapLiquidityPool/Service';
-import { NetworkResolverHttp } from '@services/Ethereum/Web3';
+import { makeBatchRequest, NetworkResolverHttp } from '@services/Ethereum/Web3';
 
 export function factory(
   logger: Factory<Logger>,
@@ -54,8 +54,8 @@ export class StakingService {
 
     const contract = new web3.eth.Contract(StakingABI.abi as AbiItem[], address);
     try {
+      const currentBlockNumber = await web3.eth.getBlockNumber();
       const [
-        currentBlockNumber,
         rewardTokenAddress,
         stakingTokenAddress,
         totalSupply,
@@ -63,15 +63,14 @@ export class StakingService {
         rewardsDuration,
         stakingEndBlock,
         unstakingStartBlock,
-      ] = await Promise.all([
-        web3.eth.getBlockNumber(),
-        contract.methods.rewardsToken().call(),
-        contract.methods.stakingToken().call(),
-        contract.methods.totalSupply().call(),
-        contract.methods.periodFinish().call(),
-        contract.methods.rewardsDuration().call(),
-        contract.methods.stakingEndBlock().call(),
-        contract.methods.unstakingStartBlock().call(),
+      ] = await makeBatchRequest(web3, [
+        contract.methods.rewardsToken().call,
+        contract.methods.stakingToken().call,
+        contract.methods.totalSupply().call,
+        contract.methods.periodFinish().call,
+        contract.methods.rewardsDuration().call,
+        contract.methods.stakingEndBlock().call,
+        contract.methods.unstakingStartBlock().call,
       ]);
       let rewardRate = await contract.methods.rewardRate().call();
       if (new BigNumber(periodFinish).lt(currentBlockNumber)) {
@@ -86,12 +85,12 @@ export class StakingService {
         rewardTokenDecimals,
         stakingTokenDecimals,
         stakingTokenSymbol,
-        rewardToken,
-        stakingToken,
-      ] = await Promise.all([
-        rewardTokenContract.methods.decimals().call(),
-        stakingTokenContract.methods.decimals().call(),
-        stakingTokenContract.methods.symbol().call(),
+      ] = await makeBatchRequest(web3, [
+        rewardTokenContract.methods.decimals().call,
+        stakingTokenContract.methods.decimals().call,
+        stakingTokenContract.methods.symbol().call,
+      ]);
+      const [rewardToken, stakingToken] = await Promise.all([
         this.tokenService().find(network, rewardTokenAddress.toLowerCase()),
         this.pairService().find(network, stakingTokenAddress.toLowerCase()),
       ]);

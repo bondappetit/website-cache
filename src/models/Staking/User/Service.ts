@@ -4,7 +4,7 @@ import { Staking } from '../Entity';
 import { StakingUser, StakingUserTable } from './Entity';
 import dayjs from 'dayjs';
 import { Factory } from '@services/Container';
-import { NetworkResolverHttp } from '@services/Ethereum/Web3';
+import { makeBatchRequest, NetworkResolverHttp } from '@services/Ethereum/Web3';
 import StakingABI from '@bondappetit/networks/abi/Staking.json';
 import { AbiItem } from 'web3-utils';
 
@@ -39,9 +39,9 @@ export class StakingUserService {
 
     const contract = new web3.eth.Contract(StakingABI.abi as AbiItem[], staking.address);
     try {
-      const [earned, balance] = await Promise.all([
-        contract.methods.earned(address).call(),
-        contract.methods.balanceOf(address).call(),
+      const [earned, balance] = await makeBatchRequest(web3, [
+        contract.methods.earned(address).call,
+        contract.methods.balanceOf(address).call,
       ]);
 
       const stakingUser = {
