@@ -1,6 +1,7 @@
 import dotenv from 'dotenv';
 dotenv.config();
 import * as PriceFeed from '../services/PriceFeed';
+import * as VolumeFeed from '../services/VolumeFeed';
 import networks from '@bondappetit/networks';
 import stakingRewardHistory from './stakingRewardHistory.config';
 
@@ -71,6 +72,17 @@ export default {
         },
       },
     ] as PriceFeed.Config[],
+    volumeFeed: [
+      {
+        networks: [networks.main.networkId],
+        token: networks.main.assets.Governance.address,
+        gateway: {
+          type: 'coingecko',
+          currency: 'usd',
+          id: 'bondappetit-gov-token',
+        },
+      },
+    ] as VolumeFeed.Config[],
     medium: {
       url: process.env.MEDIUM ?? '',
     },

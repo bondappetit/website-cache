@@ -38,6 +38,7 @@ export class ModelContainer extends Container<typeof AppContainer> {
     this.tokenTable,
     this.parent.ethereum,
     this.parent.priceFeed,
+    this.parent.volumeFeed,
     15,
   );
 
@@ -50,7 +51,7 @@ export class ModelContainer extends Container<typeof AppContainer> {
     this.uniswapLPTable,
     this.parent.ethereum,
     this.tokenService,
-    15,
+    0,
   );
 
   readonly stakingTable = StakingEntity.stakingTableFactory(this.parent.database);

@@ -3,6 +3,7 @@ import { Factory } from '@services/Container';
 import { Logger } from '@services/Logger/Logger';
 import { Network } from '@services/Network/Network';
 import * as PriceFeed from '@services/PriceFeed';
+import * as VolumeFeed from '@services/VolumeFeed';
 import dayjs from 'dayjs';
 import { Token, TokenTable } from './Entity';
 import ERC20 from '@bondappetit/networks/abi/ERC20.json';
@@ -15,9 +16,10 @@ export function factory(
   table: Factory<TokenTable>,
   web3Resolver: NetworkResolverHttp,
   getPriceFeed: PriceFeed.Factory,
+  getVolumeFeed: VolumeFeed.Factory,
   ttl: number,
 ) {
-  return () => new TokenService(logger, table, web3Resolver, getPriceFeed, ttl);
+  return () => new TokenService(logger, table, web3Resolver, getPriceFeed, getVolumeFeed, ttl);
 }
 
 export class TokenService {
@@ -26,6 +28,7 @@ export class TokenService {
     readonly table: Factory<TokenTable> = table,
     readonly web3Resolver: NetworkResolverHttp = web3Resolver,
     readonly getPriceFeed: PriceFeed.Factory = getPriceFeed,
+    readonly getVolumeFeed: VolumeFeed.Factory = getVolumeFeed,
     readonly ttl: number = ttl,
   ) {}
 
@@ -104,6 +107,8 @@ export class TokenService {
         )) ?? { priceUSD: '0', dailyVolumeUSD: '0', totalLiquidityUSD: '0' };
         const priceFeed = this.getPriceFeed(network.sid, address);
         if (priceFeed) priceUSD = await priceFeed(priceUSD);
+        const volumeFeed = this.getVolumeFeed(network.sid, address);
+        if (volumeFeed) dailyVolumeUSD = await volumeFeed(dailyVolumeUSD);
 
         const token = {
           address,
