@@ -12,7 +12,7 @@ export default [
     staking: networks.main.contracts.UsdcStableLPLockStaking.address,
     blockNumber: '12452298',
     totalReward: '960942',
-    totalEarned: '1460942',
+    totalEarned: '960942',
   },
   {
     staking: networks.main.contracts.UsdcGovLPStaking.address,
