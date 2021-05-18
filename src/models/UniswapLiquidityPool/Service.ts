@@ -161,6 +161,12 @@ export class UniswapLiquidityPoolService {
       const pair = {
         address,
         network: network.data.networkId,
+        token0Address: token0Address.toLowerCase(),
+        token1Address: token1Address.toLowerCase(),
+        token0Decimals: token0?.decimals || 18,
+        token1Decimals: token1?.decimals || 18,
+        token0Reserve: reserves.reserve0,
+        token1Reserve: reserves.reserve1,
         totalSupply: new BigNumber(totalSupply).div(new BigNumber(10).pow(decimals)).toString(),
         dailyVolumeUSD,
         totalLiquidityUSD,
