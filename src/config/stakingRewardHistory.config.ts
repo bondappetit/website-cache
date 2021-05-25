@@ -3,6 +3,12 @@ import { RewardHistory } from '@models/Staking/RewardHistory/Service';
 
 export default [
   {
+    staking: networks.main.contracts.UsdnGovLPStaking.address,
+    blockNumber: '12503194',
+    totalReward: '500000',
+    totalEarned: '500000',
+  },
+  {
     staking: networks.main.contracts.UsdcStableLPLockStaking.address,
     blockNumber: '12314669',
     totalReward: '1380469',
