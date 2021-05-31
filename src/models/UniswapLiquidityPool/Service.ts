@@ -1,4 +1,5 @@
 import { Factory } from '@services/Container';
+import { cached } from '@services/Database/Entity';
 import { Logger } from '@services/Logger/Logger';
 import { UniswapLiquidityPool, UniswapLiquidityPoolTable } from './Entity';
 import dayjs from 'dayjs';
@@ -112,18 +113,17 @@ export class UniswapLiquidityPoolService {
   }
 
   async find(network: Network, address: EthAddress): Promise<UniswapLiquidityPool | undefined> {
+    const cache = cached(this.table, this.ttl);
     const where = {
       address,
       network: network.data.networkId,
     };
-    const cached = await this.table().where(where).first();
-    if (cached && cached.updatedAt >= dayjs().subtract(this.ttl, 'seconds').toDate()) return cached;
 
-    const web3 = this.web3Resolver.get(network.sid);
-    if (!web3) return undefined;
+    return cache(where, async () => {
+      const web3 = this.web3Resolver.get(network.sid);
+      if (!web3) return undefined;
 
-    const contract = new web3.eth.Contract(Pair.abi as AbiItem[], address);
-    try {
+      const contract = new web3.eth.Contract(Pair.abi as AbiItem[], address);
       const [
         totalSupply,
         decimals,
@@ -158,7 +158,7 @@ export class UniswapLiquidityPoolService {
         )
         .toString();
 
-      const pair = {
+      return {
         address,
         network: network.data.networkId,
         token0Address: token0Address.toLowerCase(),
@@ -172,16 +172,9 @@ export class UniswapLiquidityPoolService {
         totalLiquidityUSD,
         updatedAt: new Date(),
       };
-      if (cached) {
-        await this.table().update(pair).where(where);
-      } else {
-        await this.table().insert(pair);
-      }
-
-      return pair;
-    } catch (e) {
-      this.logger().error(`Invalid uniswap API request: ${e}`);
-      return undefined;
-    }
+    }).catch(({ error, cached }) => {
+      this.logger().error(error);
+      return cached;
+    });
   }
 }

@@ -1,4 +1,5 @@
 import { Factory } from '@services/Container';
+import { cached } from '@services/Database/Entity';
 import { Logger } from '@services/Logger/Logger';
 import { Staking, StakingTable, StakingTokenType } from './Entity';
 import BigNumber from 'bignumber.js';
@@ -42,18 +43,17 @@ export class StakingService {
   ) {}
 
   async find(network: Network, address: EthAddress): Promise<Staking | undefined> {
+    const cache = cached(this.table, this.ttl);
     const where = {
       address,
       network: network.data.networkId,
     };
-    const cached = await this.table().where(where).first();
-    if (cached && cached.updatedAt >= dayjs().subtract(this.ttl, 'seconds').toDate()) return cached;
 
-    const web3 = this.web3Resolver.get(network.sid);
-    if (!web3) return undefined;
+    return cache(where, async () => {
+      const web3 = this.web3Resolver.get(network.sid);
+      if (!web3) return undefined;
 
-    const contract = new web3.eth.Contract(StakingABI.abi as AbiItem[], address);
-    try {
+      const contract = new web3.eth.Contract(StakingABI.abi as AbiItem[], address);
       const currentBlockNumber = await web3.eth.getBlockNumber();
       const [
         rewardTokenAddress,
@@ -114,7 +114,7 @@ export class StakingService {
         .multipliedBy(24);
       if (blocksPerDay.isNaN()) blocksPerDay = new BigNumber(0);
 
-      const staking = {
+      return {
         address,
         network: network.data.networkId,
         rewardToken: rewardTokenAddress.toLowerCase(),
@@ -162,16 +162,9 @@ export class StakingService {
         aprYear: new BigNumber(aprPerBlock).multipliedBy(blocksPerDay.multipliedBy(356)).toString(),
         updatedAt: new Date(),
       };
-      if (cached) {
-        await this.table().update(staking).where(where);
-      } else {
-        await this.table().insert(staking);
-      }
-
-      return staking;
-    } catch (e) {
-      this.logger().error(`Invalid staking contract "${network.id}:${address}" request: ${e}`);
-      return undefined;
-    }
+    }).catch(({ error, cached }) => {
+      this.logger().error(error);
+      return cached;
+    });
   }
 }

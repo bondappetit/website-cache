@@ -1,8 +1,8 @@
 import { EthAddress } from '@models/types';
+import { cached } from '@services/Database/Entity';
 import { Factory } from '@services/Container';
 import { Logger } from '@services/Logger/Logger';
 import { Network } from '@services/Network/Network';
-import dayjs from 'dayjs';
 import { Wallet, WalletTable } from './Entity';
 import { NetworkResolverHttp } from '@services/Ethereum/Web3';
 
@@ -24,36 +24,32 @@ export class WalletService {
   ) {}
 
   async find(network: Network, address: EthAddress): Promise<Wallet | undefined> {
+    const cache = cached(this.table, this.ttl);
     const where = {
       address,
       network: network.id,
     };
-    const cached = await this.table().where(where).first();
-    if (cached && cached.updatedAt >= dayjs().subtract(this.ttl, 'seconds').toDate()) return cached;
 
-    const web3 = this.web3Resolver.get(network.sid);
-    if (!web3) return undefined;
+    return cache(where, async () => {
+      const web3 = this.web3Resolver.get(network.sid);
+      if (!web3) return undefined;
 
-    try {
-      const balance = await web3.eth.getBalance(address);
+      try {
+        const balance = await web3.eth.getBalance(address);
 
-      const wallet = {
-        address,
-        network: network.id,
-        balance,
-        updatedAt: new Date(),
-      };
-
-      if (cached) {
-        await this.table().update(wallet).where(where);
-      } else {
-        await this.table().insert(wallet);
+        return {
+          address,
+          network: network.id,
+          balance,
+          updatedAt: new Date(),
+        };
+      } catch (e) {
+        this.logger().error(`Invalid wallet "${network.id}:${address}" request: ${e}`);
+        return undefined;
       }
-
-      return wallet;
-    } catch (e) {
-      this.logger().error(`Invalid wallet "${network.id}:${address}" request: ${e}`);
-      return undefined;
-    }
+    }).catch(({ error, cached }) => {
+      this.logger().error(error);
+      return cached;
+    });
   }
 }
