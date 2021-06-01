@@ -1,4 +1,3 @@
-import { tableName } from '@models/Token/Entity';
 import { EthAddress, TxHash } from '@models/types';
 import { Factory } from '@services/Container';
 import { Network } from '@services/Network/Network';

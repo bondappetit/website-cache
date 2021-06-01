@@ -21,6 +21,7 @@ import { walletType, walletPayload } from './graphql/wallet';
 import { Staking } from '@models/Staking/Entity';
 import BigNumber from 'bignumber.js';
 import { mediumPostType } from './graphql/medium';
+import { swopfiPairPayload, swopfiPairType } from './graphql/swopfi';
 
 export function use({ server, express }: WebServer) {
   const apollo = new ApolloServer({
@@ -292,6 +293,58 @@ export function use({ server, express }: WebServer) {
               );
 
               return wallets.filter((wallet) => wallet !== undefined);
+            },
+          },
+          swopfiPair: {
+            type: GraphQLNonNull(swopfiPairPayload),
+            args: {
+              filter: {
+                type: GraphQLNonNull(
+                  new GraphQLInputObjectType({
+                    name: 'SwopfiPairQueryFilterInputType',
+                    fields: {
+                      address: {
+                        type: GraphQLNonNull(GraphQLString),
+                        description: 'Target pair address',
+                      },
+                    },
+                  }),
+                ),
+              },
+            },
+            resolve: async (root, { filter: { address } }) => {
+              const pair = await container.model.swopfiLPService().find(1, address);
+
+              return pair ? { data: pair } : { error: 'Pair not found' };
+            },
+          },
+          swopfiPairList: {
+            type: GraphQLNonNull(GraphQLList(GraphQLNonNull(swopfiPairType))),
+            args: {
+              filter: {
+                type: new GraphQLInputObjectType({
+                  name: 'SwopfiPairListQueryFilterInputType',
+                  fields: {
+                    address: {
+                      type: GraphQLList(GraphQLNonNull(GraphQLString)),
+                      description: 'List of target pair addresses',
+                    },
+                  },
+                }),
+              },
+            },
+            resolve: async (root, { filter }) => {
+              const { address } = filter ?? { address: [] };
+
+              if (address.length == 0) return [];
+
+              const pairs = await Promise.all(
+                address.map(async (address: string) =>
+                  container.model.swopfiLPService().find(1, address),
+                ),
+              );
+
+              return pairs.filter((pair) => pair !== undefined);
             },
           },
         },

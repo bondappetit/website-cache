@@ -18,6 +18,8 @@ import * as BurgerSwapBridgeEntity from './BurgerSwap/Bridge/Entity';
 import * as BurgerSwapBridgeService from './BurgerSwap/Bridge/Service';
 import * as WalletEntity from './Wallet/Entity';
 import * as WalletService from './Wallet/Service';
+import * as SwopfiLiquidityPoolEntity from './Swopfi/Entity';
+import * as SwopfiLiquidityPoolService from './Swopfi/Service';
 
 export class ModelContainer extends Container<typeof AppContainer> {
   readonly migrationTable = MigrationEntity.migrationTableFactory(this.parent.database);
@@ -101,5 +103,15 @@ export class ModelContainer extends Container<typeof AppContainer> {
     this.walletTable,
     this.parent.ethereum,
     15,
+  );
+
+  readonly swopfiLPTable = SwopfiLiquidityPoolEntity.swopfiLiquidityPoolTableFactory(
+    this.parent.database,
+  );
+
+  readonly swopfiLPService = SwopfiLiquidityPoolService.factory(
+    this.parent.logger,
+    this.swopfiLPTable,
+    60,
   );
 }
