@@ -110,6 +110,7 @@ export class StakingService {
       if (aprPerBlock.isNaN()) aprPerBlock = new BigNumber(0);
       if (aprPerBlock.toNumber() == 0) {
         console.log(
+          `currentBlockNumber = ${currentBlockNumber}`,
           `rewardRate = ${rewardRate.toString()}`,
           `rewardTokenPriceUSD = ${rewardTokenPriceUSD.toString()}`,
           `totalSupply = ${totalSupply.toString()}`,
