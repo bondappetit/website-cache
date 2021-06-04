@@ -85,7 +85,7 @@ export class SwopfiLiquidityPoolService {
         dailyFeesUSD: lpFees24,
         dailyVolumeUSD: volume24,
         dailyTxCount: txCount24,
-        aprYear: 0,
+        aprYear: '0',
         /*
         new BigNumber(stakingIncome)
           .plus(lpFees24)
