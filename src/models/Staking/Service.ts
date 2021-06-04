@@ -108,6 +108,14 @@ export class StakingService {
             .multipliedBy(stakingTokenPriceUSD),
         );
       if (aprPerBlock.isNaN()) aprPerBlock = new BigNumber(0);
+      if (aprPerBlock.toNumber() == 0) {
+        console.log(
+          `rewardRate = ${rewardRate.toString()}`,
+          `rewardTokenPriceUSD = ${rewardTokenPriceUSD.toString()}`,
+          `totalSupply = ${totalSupply.toString()}`,
+          `stakingTokenPriceUSD = ${stakingTokenPriceUSD.toString()}`,
+        );
+      }
       let blocksPerDay = new BigNumber(60)
         .div(network.data.averageBlockTime)
         .multipliedBy(60)
