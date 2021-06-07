@@ -1,7 +1,6 @@
 import { Factory } from '@services/Container';
 import axios from 'axios';
 import { cached } from '@services/Database/Entity';
-import { NetworkResolverHttp } from '@services/Ethereum/Web3';
 import { Logger } from '@services/Logger/Logger';
 import BigNumber from 'bignumber.js';
 import { SwopfiLiquidityPool, SwopfiLiquidityPoolTable } from './Entity';
@@ -33,6 +32,36 @@ export interface LiquidityPoolResponseBody {
   };
 }
 
+export interface RateResponseBody {
+  success: boolean;
+  height: number;
+  data: {
+    [asset: string]: {
+      rate: string;
+    };
+  };
+}
+
+export interface FarmingInfoResponseBody {
+  success: boolean;
+  height: number;
+  data: Array<{
+    pool: string;
+    shareToken: string;
+    totalShareTokensLoked: string;
+  }>;
+}
+
+export interface GovernanceResponseBody {
+  success: boolean;
+  height: number;
+  data: Array<{
+    key: string;
+    type: string;
+    value: string;
+  }>;
+}
+
 export function factory(
   logger: Factory<Logger>,
   table: Factory<SwopfiLiquidityPoolTable>,
@@ -40,6 +69,8 @@ export function factory(
 ) {
   return () => new SwopfiLiquidityPoolService(logger, table, ttl);
 }
+
+const swopTokenId = 'Ehie5xYpeN8op1Cctc6aGUrqx8jq3jtf1DSjXDbfm7aT';
 
 export class SwopfiLiquidityPoolService {
   constructor(
@@ -56,10 +87,51 @@ export class SwopfiLiquidityPoolService {
     };
 
     return cache(where, async () => {
-      const res = await axios.get<LiquidityPoolResponseBody>(
+      const lpRes = await axios.get<LiquidityPoolResponseBody>(
         `https://backend.swop.fi/exchangers/${address}`,
       );
-      if (!res.data.success) return undefined;
+      if (!lpRes.data.success) return undefined;
+
+      const farmingRes = await axios.get<FarmingInfoResponseBody>(
+        'https://backend.swop.fi/farming/info',
+      );
+      if (!farmingRes.data.success) return undefined;
+      let { shareToken, totalShareTokensLoked } = farmingRes.data.data.find(
+        ({ pool }) => pool === address,
+      ) ?? { pool: address, shareToken: '', totalShareTokensLoked: '0' };
+      totalShareTokensLoked = new BigNumber(totalShareTokensLoked)
+        .div(new BigNumber(10).pow(6))
+        .toString(10);
+
+      const ratesRes = await axios.get<RateResponseBody>('https://backend.swop.fi/assets/rates');
+      if (!ratesRes.data.success) return undefined;
+      let { rate: swopRate } = ratesRes.data.data[swopTokenId] ?? { rate: '0' };
+      swopRate = new BigNumber(swopRate).div(new BigNumber(10).pow(6)).toString(10);
+      let { rate: shareRate } = ratesRes.data.data[shareToken] ?? { rate: '' };
+      shareRate = new BigNumber(shareRate).div(new BigNumber(10).pow(6)).toString(10);
+
+      const governanceRes = await axios.get<GovernanceResponseBody>(
+        'https://backend.swop.fi/governance',
+      );
+      if (!governanceRes.data.success) return undefined;
+      let { value: poolWeight } = governanceRes.data.data.find(
+        ({ key }) => key === `${address}_current_pool_fraction_reward`,
+      ) ?? {
+        key: `${address}_current_pool_fraction_reward`,
+        type: 'int',
+        value: '0',
+      };
+      poolWeight = new BigNumber(poolWeight).div(new BigNumber(10).pow(10)).toString(10);
+
+      const swopAPY =
+        totalShareTokensLoked !== '0' && shareRate !== '0'
+          ? new BigNumber(1000000)
+              .multipliedBy(poolWeight)
+              .multipliedBy(swopRate)
+              .div(totalShareTokensLoked)
+              .div(shareRate)
+              .toString(10)
+          : '0';
 
       const {
         A_asset_id,
@@ -71,7 +143,7 @@ export class SwopfiLiquidityPoolService {
         txCount24,
         lpFees24,
         totalLiquidity,
-      } = res.data.data;
+      } = lpRes.data.data;
 
       return {
         address,
@@ -85,14 +157,12 @@ export class SwopfiLiquidityPoolService {
         dailyFeesUSD: lpFees24,
         dailyVolumeUSD: volume24,
         dailyTxCount: txCount24,
-        aprYear: '0',
-        /*
-        new BigNumber(stakingIncome)
+        aprYear: new BigNumber(stakingIncome)
           .plus(lpFees24)
-          .multipliedBy(365)
           .div(totalLiquidity)
+          .multipliedBy(365)
+          .plus(swopAPY)
           .toString(10),
-          */
         updatedAt: new Date(),
       };
     }).catch(({ error, cached }) => {

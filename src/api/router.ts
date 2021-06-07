@@ -22,6 +22,7 @@ import { Staking } from '@models/Staking/Entity';
 import BigNumber from 'bignumber.js';
 import { mediumPostType } from './graphql/medium';
 import { swopfiPairPayload, swopfiPairType } from './graphql/swopfi';
+import { SwopfiLiquidityPool } from '@models/Swopfi/Entity';
 
 export function use({ server, express }: WebServer) {
   const apollo = new ApolloServer({
@@ -57,7 +58,7 @@ export function use({ server, express }: WebServer) {
                   ),
                 ),
               );
-              const tvl = await ([] as Array<Staking | undefined>)
+              const stakingTVL = await ([] as Array<Staking | undefined>)
                 .concat(...stakings)
                 .reduce(async (sum: Promise<BigNumber>, staking: Staking | undefined) => {
                   if (staking === undefined) return sum;
@@ -77,8 +78,21 @@ export function use({ server, express }: WebServer) {
                       ),
                   );
                 }, Promise.resolve(new BigNumber(0)));
+              const swopfiAddresses = ['3PAgYAV4jYJ7BF8LCVNU9tyWCBtQaqeLQH4'];
+              const swopfis = await Promise.all(
+                swopfiAddresses.map(async (address: string) =>
+                  container.model.swopfiLPService().find(0, address),
+                ),
+              );
+              const swopfiTVL = await ([] as Array<SwopfiLiquidityPool | undefined>)
+                .concat(...swopfis)
+                .reduce(async (sum: Promise<BigNumber>, pool: SwopfiLiquidityPool | undefined) => {
+                  if (pool === undefined) return sum;
 
-              return tvl.toFixed(2);
+                  return new BigNumber(pool.totalLiquidityUSD).div('1000000').plus(await sum);
+                }, Promise.resolve(new BigNumber(0)));
+
+              return new BigNumber(stakingTVL).plus(swopfiTVL).toFixed(2);
             },
           },
           token: {
