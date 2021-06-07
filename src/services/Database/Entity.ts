@@ -14,12 +14,15 @@ export function cached<T extends { updatedAt: Date }>(
   table: Factory<QueryBuilder<T, T[]>>,
   ttl: number,
 ) {
-  return async (where: DbRecord<ResolveTableType<T>>, resolve: () => Promise<T | undefined>) => {
+  return async (
+    where: DbRecord<ResolveTableType<T>>,
+    resolve: (cached: T | undefined) => Promise<T | undefined>,
+  ) => {
     const cached = await table().where(where).first();
     if (cached && cached.updatedAt >= dayjs().subtract(ttl, 'seconds').toDate()) return cached;
 
     try {
-      const entity = await resolve();
+      const entity = await resolve(cached as T | undefined);
       if (entity !== undefined) {
         if (cached) {
           await table()

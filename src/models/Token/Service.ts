@@ -86,7 +86,7 @@ export class TokenService {
       network: network.id,
     };
 
-    return cache(where, async () => {
+    return cache(where, async (cached) => {
       const web3 = this.web3Resolver.get(network.sid);
       if (!web3) return undefined;
 
@@ -103,7 +103,7 @@ export class TokenService {
         address,
       )) ?? { priceUSD: '0', dailyVolumeUSD: '0', totalLiquidityUSD: '0' };
       const priceFeed = this.getPriceFeed(network.sid, address);
-      if (priceFeed) priceUSD = await priceFeed(priceUSD);
+      if (priceFeed) priceUSD = await priceFeed(cached?.priceUSD ?? priceUSD);
       const volumeFeed = this.getVolumeFeed(network.sid, address);
       if (volumeFeed) dailyVolumeUSD = await volumeFeed(dailyVolumeUSD);
 
