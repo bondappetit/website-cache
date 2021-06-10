@@ -38,4 +38,10 @@ export default [
     totalReward: '500000',
     totalEarned: '500000',
   },
+  {
+    staking: networks.mainBSC.contracts.BnbGovLPStaking.address,
+    blockNumber: '8173282',
+    totalReward: '500000',
+    totalEarned: '500000',
+  },
 ] as RewardHistory[];
