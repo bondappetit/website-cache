@@ -62,6 +62,22 @@ export interface GovernanceResponseBody {
   }>;
 }
 
+export interface AssetInfo {
+  assetId: string;
+  issueHeight: number;
+  issueTimestamp: number;
+  issuer: string;
+  issuerPublicKey: string;
+  name: string;
+  description: string;
+  decimals: number;
+  reissuable: boolean;
+  quantity: number;
+  scripted: boolean;
+  minSponsoredAssetFee: number | null;
+  originTransactionId: string;
+}
+
 export function factory(
   logger: Factory<Logger>,
   table: Factory<SwopfiLiquidityPoolTable>,
@@ -103,12 +119,19 @@ export class SwopfiLiquidityPoolService {
         .div(new BigNumber(10).pow(6))
         .toString(10);
 
+      const shareTokenInfoRes = await axios.get<AssetInfo>(
+        `https://waves-node.tokenomica.com/assets/details/${shareToken}`,
+      );
+      const { decimals: shareTokenDecimals } = shareTokenInfoRes.data || { decimals: 6 };
+
       const ratesRes = await axios.get<RateResponseBody>('https://backend.swop.fi/assets/rates');
       if (!ratesRes.data.success) return undefined;
       let { rate: swopRate } = ratesRes.data.data[swopTokenId] ?? { rate: '0' };
       swopRate = new BigNumber(swopRate).div(new BigNumber(10).pow(6)).toString(10);
       let { rate: shareRate } = ratesRes.data.data[shareToken] ?? { rate: '' };
-      shareRate = new BigNumber(shareRate).div(new BigNumber(10).pow(6)).toString(10);
+      shareRate = new BigNumber(shareRate)
+        .div(new BigNumber(10).pow(shareTokenDecimals))
+        .toString(10);
 
       const governanceRes = await axios.get<GovernanceResponseBody>(
         'https://backend.swop.fi/governance',
