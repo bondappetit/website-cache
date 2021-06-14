@@ -120,7 +120,7 @@ export class SwopfiLiquidityPoolService {
         .toString(10);
 
       const shareTokenInfoRes = await axios.get<AssetInfo>(
-        `https://waves-node.tokenomica.com/assets/details/${shareToken}`,
+        `https://nodes.wavesnodes.com/assets/details/${shareToken}`,
       );
       const { decimals: shareTokenDecimals } = shareTokenInfoRes.data || { decimals: 6 };
 
