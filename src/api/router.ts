@@ -42,6 +42,8 @@ export function use({ server, express }: WebServer) {
                   mainETHNetwork.data.contracts.UsdcStableLPLockStaking.address,
                   mainETHNetwork.data.contracts.UsdnGovLPStaking.address,
                   mainETHNetwork.data.contracts.UsdtGovLPStaking.address,
+                  mainETHNetwork.data.contracts.UsdtGovLPStaking.address,
+                  mainETHNetwork.data.contracts.StableGovLPStaking.address,
                 ],
                 [mainBSCNetwork.data.networkId]: [
                   mainBSCNetwork.data.contracts.BnbGovLPStaking.address,

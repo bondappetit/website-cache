@@ -44,7 +44,7 @@
     "typescript": "^4.2.3"
   },
   "dependencies": {
-    "@bondappetit/networks": "2.0.6",
+    "@bondappetit/networks": "2.0.9",
     "apollo-server-express": "^2.22.2",
     "axios": "^0.21.1",
     "bignumber.js": "^9.0.1",
