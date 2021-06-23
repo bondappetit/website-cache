@@ -45,7 +45,7 @@ export default [
     totalEarned: '500000',
   },
   {
-    staking: networks.mainBSC.contracts.UsdtGovLPStaking.address,
+    staking: networks.main.contracts.UsdtGovLPStaking.address,
     blockNumber: '12679544',
     totalReward: '500000',
     totalEarned: '500000',
