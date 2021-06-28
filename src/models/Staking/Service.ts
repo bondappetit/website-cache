@@ -168,7 +168,7 @@ export class StakingService {
         aprDay: new BigNumber(aprPerBlock).multipliedBy(blocksPerDay).toString(),
         aprWeek: new BigNumber(aprPerBlock).multipliedBy(blocksPerDay.multipliedBy(7)).toString(),
         aprMonth: new BigNumber(aprPerBlock).multipliedBy(blocksPerDay.multipliedBy(30)).toString(),
-        aprYear: new BigNumber(aprPerBlock).multipliedBy(blocksPerDay.multipliedBy(356)).toString(),
+        aprYear: new BigNumber(aprPerBlock).multipliedBy(blocksPerDay.multipliedBy(365)).toString(),
         updatedAt: new Date(),
       };
     }).catch(({ error, cached }) => {
