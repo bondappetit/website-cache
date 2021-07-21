@@ -50,4 +50,10 @@ export default [
     totalReward: '500000',
     totalEarned: '500000',
   },
+  {
+    staking: networks.main.contracts.StableGovLPStaking.address,
+    blockNumber: '12870967',
+    totalReward: '1000000',
+    totalEarned: '1000000',
+  },
 ] as RewardHistory[];
