@@ -51,6 +51,12 @@ export default [
     totalEarned: '500000',
   },
   {
+    staking: networks.mainBSC.contracts.BnbGovLPStaking.address,
+    blockNumber: '8882482',
+    totalReward: '50000',
+    totalEarned: '50000',
+  },
+  {
     staking: networks.main.contracts.StableGovLPStaking.address,
     blockNumber: '12870967',
     totalReward: '1000000',
