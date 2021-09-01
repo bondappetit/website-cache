@@ -16,6 +16,7 @@ import { uniswapPairPayload, uniswapPairType } from './graphql/uniswapPair';
 import { addressScalar } from './graphql/types';
 import { currentNetwork } from './middlewares/currentNetwork';
 import { stakingPayload, stakingType } from './graphql/staking';
+import { profitDistributorPayload, profitDistributorType } from './graphql/profitDistributor';
 import * as BurgerSwapBridge from './graphql/burgerSwap/bridge';
 import { walletType, walletPayload } from './graphql/wallet';
 import { Staking } from '@models/Staking/Entity';
@@ -246,6 +247,60 @@ export function use({ server, express }: WebServer) {
               const stakings = await Promise.all(
                 address.map(async (address: string) =>
                   container.model.stakingService().find(currentNetwork, address),
+                ),
+              );
+
+              return stakings.filter((staking) => staking !== undefined);
+            },
+          },
+          profitDistributor: {
+            type: GraphQLNonNull(profitDistributorPayload),
+            args: {
+              filter: {
+                type: GraphQLNonNull(
+                  new GraphQLInputObjectType({
+                    name: 'ProfitDistributorQueryFilterInputType',
+                    fields: {
+                      address: {
+                        type: GraphQLNonNull(addressScalar),
+                        description: 'Target staking contract address',
+                      },
+                    },
+                  }),
+                ),
+              },
+            },
+            resolve: async (root, { filter: { address } }, { currentNetwork }) => {
+              const staking = await container.model
+                .profitDistributorService()
+                .find(currentNetwork, address);
+
+              return staking ? { data: staking } : { error: 'Staking not found' };
+            },
+          },
+          profitDistributorList: {
+            type: GraphQLNonNull(GraphQLList(GraphQLNonNull(profitDistributorType))),
+            args: {
+              filter: {
+                type: new GraphQLInputObjectType({
+                  name: 'ProfitDistributorListQueryFilterInputType',
+                  fields: {
+                    address: {
+                      type: GraphQLList(GraphQLNonNull(addressScalar)),
+                      description: 'List of target staking contract addresses',
+                    },
+                  },
+                }),
+              },
+            },
+            resolve: async (root, { filter }, { currentNetwork }) => {
+              const { address } = filter ?? { address: [] };
+
+              if (address.length == 0) return [];
+
+              const stakings = await Promise.all(
+                address.map(async (address: string) =>
+                  container.model.profitDistributorService().find(currentNetwork, address),
                 ),
               );
 

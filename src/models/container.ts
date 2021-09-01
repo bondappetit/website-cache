@@ -12,6 +12,10 @@ import * as StakingService from './Staking/Service';
 import * as StakingUserEntity from './Staking/User/Entity';
 import * as StakingUserService from './Staking/User/Service';
 import * as StakingRewardHistory from './Staking/RewardHistory/Service';
+import * as ProfitDistributorEntity from './ProfitDistributor/Entity';
+import * as ProfitDistributorService from './ProfitDistributor/Service';
+import * as ProfitDistributorUserEntity from './ProfitDistributor/User/Entity';
+import * as ProfitDistributorUserService from './ProfitDistributor/User/Service';
 import * as MediumEntity from './Medium/Entity';
 import * as MediumService from './Medium/Service';
 import * as BurgerSwapBridgeEntity from './BurgerSwap/Bridge/Entity';
@@ -78,6 +82,30 @@ export class ModelContainer extends Container<typeof AppContainer> {
 
   readonly stakingRewardHistory = singleton(
     () => new StakingRewardHistory.RewardHistoryService(this.parent.parent.stakingRewardHistory),
+  );
+
+  readonly profitDistributorTable = ProfitDistributorEntity.profitDistributorTableFactory(
+    this.parent.database,
+  );
+
+  readonly profitDistributorService = ProfitDistributorService.factory(
+    this.parent.logger,
+    this.profitDistributorTable,
+    this.parent.ethereum,
+    this.tokenService,
+    30,
+  );
+
+  readonly profitDistributorUserTable = ProfitDistributorUserEntity.profitDistributorUserTableFactory(
+    this.parent.database,
+  );
+
+  readonly profitDistributorUserService = ProfitDistributorUserService.factory(
+    this.parent.logger,
+    this.profitDistributorUserTable,
+    this.parent.ethereum,
+    this.parent.network,
+    15,
   );
 
   readonly mediumPostTable = MediumEntity.mediumPostTableFactory(this.parent.database);
