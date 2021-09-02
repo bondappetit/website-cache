@@ -58,8 +58,9 @@ export class ProfitDistributorUserService {
         distributor.address,
       );
       const currentBlockNumber = await web3.eth.getBlockNumber();
-      const [earned, balance, lockInfo] = await makeBatchRequest(web3, [
+      const [earned, penalty, balance, lockInfo] = await makeBatchRequest(web3, [
         contract.methods.earned(address).call,
+        contract.methods.penalty(address).call,
         contract.methods.balanceOf(address).call,
         contract.methods.lockInfo(address).call,
       ]);
@@ -72,6 +73,7 @@ export class ProfitDistributorUserService {
         address,
         balance,
         earned,
+        penalty,
         locked: lockInfo.locked,
         stakeAt: staked ? lockInfo.stakeAt : null,
         stakeAtDate: staked

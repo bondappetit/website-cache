@@ -6,6 +6,7 @@ export interface ProfitDistributorUser {
   address: string;
   balance: string;
   earned: string;
+  penalty: string;
   locked: boolean;
   stakeAt: string | null;
   stakeAtDate: Date | null;

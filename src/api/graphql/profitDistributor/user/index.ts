@@ -51,6 +51,18 @@ export const profitDistributorUserType = new GraphQLObjectType<ProfitDistributor
         return new BigNumber(earned).div(new BigNumber(10).pow(rewardTokenDecimals)).toString(10);
       },
     },
+    penalty: {
+      type: GraphQLNonNull(GraphQLString),
+      description: 'Penalty balance',
+      resolve: ({ user: { penalty } }) => penalty,
+    },
+    penaltyFloat: {
+      type: GraphQLNonNull(GraphQLString),
+      description: 'Penalty balance normalize',
+      resolve: ({ user: { penalty }, staking: { rewardTokenDecimals } }) => {
+        return new BigNumber(penalty).div(new BigNumber(10).pow(rewardTokenDecimals)).toString(10);
+      },
+    },
     stakeAt: {
       type: GraphQLString,
       description: 'Stake at block number',
