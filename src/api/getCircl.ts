@@ -110,12 +110,23 @@ export async function getCircl(req: Request, res: Response) {
     networks.main.contracts.Governance.abi as AbiItem[],
     networks.main.contracts.Governance.address,
   );
-  const balance = await bag.methods.balanceOf('0x5D17016bF168FfF34177A53474B949dEBd87ca40').call();
-  const balanceNormalize = new BigNumber(balance).div(
+
+  // marketingBalance
+  const marketingBalance = await bag.methods.balanceOf('0x5D17016bF168FfF34177A53474B949dEBd87ca40').call();
+  const marketingBalanceNormalize = new BigNumber(marketingBalance).div(
+    new BigNumber(10).pow(networks.main.assets.Governance.decimals),
+  );
+
+  // investmentBalance
+  const investmentBalance = await bag.methods.balanceOf('0xaa1018F90ff82F058b1Ec7aa3D72A243F66300Bd').call();
+  const investmentBalanceNormalize = new BigNumber(investmentBalance).div(
     new BigNumber(10).pow(networks.main.assets.Governance.decimals),
   );
 
   return res.send(
-    new BigNumber(totalEarned).plus(new BigNumber('500000').minus(balanceNormalize)).toString(10),
+    new BigNumber(totalEarned)
+      .plus(new BigNumber('500000').minus(marketingBalanceNormalize))
+      .plus(new BigNumber('480000').minus(investmentBalanceNormalize))
+      .toString(10),
   );
 }
