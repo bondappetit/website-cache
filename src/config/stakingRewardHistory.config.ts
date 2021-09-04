@@ -15,6 +15,12 @@ export default [
     totalEarned: '500000',
   },
   {
+    staking: networks.main.contracts.UsdnGovLPStaking.address,
+    blockNumber: '12341914',
+    totalReward: '500000',
+    totalEarned: '500000',
+  },
+  {
     staking: networks.main.contracts.UsdcGovLPStaking.address,
     blockNumber: '12521185',
     totalReward: '500000',
