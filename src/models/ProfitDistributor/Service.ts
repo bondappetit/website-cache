@@ -65,10 +65,7 @@ export class ProfitDistributorService {
         ERC20.abi as AbiItem[],
         stakingTokenAddress,
       );
-      const [
-        rewardTokenDecimals,
-        stakingTokenDecimals,
-      ] = await makeBatchRequest(web3, [
+      const [rewardTokenDecimals, stakingTokenDecimals] = await makeBatchRequest(web3, [
         rewardTokenContract.methods.decimals().call,
         stakingTokenContract.methods.decimals().call,
       ]);
@@ -90,15 +87,6 @@ export class ProfitDistributorService {
             .multipliedBy(stakingTokenPriceUSD),
         );
       if (aprPerBlock.isNaN()) aprPerBlock = new BigNumber(0);
-      if (aprPerBlock.toNumber() == 0) {
-        console.log(
-          `currentBlockNumber = ${currentBlockNumber}`,
-          `rewardRate = ${rewardRate.toString()}`,
-          `rewardTokenPriceUSD = ${rewardTokenPriceUSD.toString()}`,
-          `totalSupply = ${totalSupply.toString()}`,
-          `stakingTokenPriceUSD = ${stakingTokenPriceUSD.toString()}`,
-        );
-      }
       let blocksPerDay = new BigNumber(60)
         .div(network.data.averageBlockTime)
         .multipliedBy(60)

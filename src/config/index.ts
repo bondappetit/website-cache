@@ -44,6 +44,19 @@ export default {
           id: 'bondappetit-gov-token',
         },
       },
+      ...(networks.main.assets.yGovernance
+        ? [
+            {
+              networks: [networks.main.networkId],
+              token: networks.main.assets.yGovernance.address,
+              gateway: {
+                type: 'coingecko',
+                currency: 'usd',
+                id: 'bondappetit-gov-token',
+              },
+            },
+          ]
+        : []),
       {
         networks: [networks.main.networkId],
         token: networks.main.assets.Stable.address,
@@ -51,6 +64,51 @@ export default {
           type: 'coingecko',
           currency: 'usd',
           id: 'bond-appetite-usd',
+        },
+      },
+      {
+        networks: [networks.main.networkId],
+        token: networks.main.assets.USDC.address,
+        gateway: {
+          type: 'coingecko',
+          currency: 'usd',
+          id: 'usd-coin',
+        },
+      },
+      {
+        networks: [networks.ropsten.networkId],
+        token: networks.ropsten.assets.Governance.address,
+        gateway: {
+          type: 'coingecko',
+          currency: 'usd',
+          id: 'bondappetit-gov-token',
+        },
+      },
+      {
+        networks: [networks.ropsten.networkId],
+        token: networks.ropsten.assets.yGovernance.address,
+        gateway: {
+          type: 'coingecko',
+          currency: 'usd',
+          id: 'bondappetit-gov-token',
+        },
+      },
+      {
+        networks: [networks.ropsten.networkId],
+        token: networks.ropsten.assets.Stable.address,
+        gateway: {
+          type: 'coingecko',
+          currency: 'usd',
+          id: 'bond-appetite-usd',
+        },
+      },
+      {
+        networks: [networks.ropsten.networkId],
+        token: networks.ropsten.assets.USDC.address,
+        gateway: {
+          type: 'coingecko',
+          currency: 'usd',
+          id: 'usd-coin',
         },
       },
       {

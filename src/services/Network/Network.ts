@@ -36,7 +36,7 @@ export class Network {
 
   findAssetByAddress(address: EthAddress) {
     return this.normalizeAsset(
-      Object.values(this.data.assets).find((asset) => asset.address === address),
+      Object.values(this.data.assets).find((asset) => asset.address.toLowerCase() === address.toLowerCase()),
     );
   }
 
