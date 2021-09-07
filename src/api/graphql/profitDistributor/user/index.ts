@@ -63,6 +63,11 @@ export const profitDistributorUserType = new GraphQLObjectType<ProfitDistributor
         return new BigNumber(penalty).div(new BigNumber(10).pow(rewardTokenDecimals)).toString(10);
       },
     },
+    locked: {
+      type: GraphQLNonNull(GraphQLBoolean),
+      description: 'Is locked period',
+      resolve: ({ user: { locked } }) => locked,
+    },
     stakeAt: {
       type: GraphQLString,
       description: 'Stake at block number',
