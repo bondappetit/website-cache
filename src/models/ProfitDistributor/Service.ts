@@ -74,10 +74,7 @@ export class ProfitDistributorService {
         this.tokenService().find(network, stakingTokenAddress.toLowerCase()),
       ]);
       const rewardTokenPriceUSD = new BigNumber(rewardToken?.priceUSD ?? '0');
-      let stakingTokenPriceUSD = new BigNumber(stakingToken?.totalLiquidityUSD ?? '0').div(
-        stakingToken?.totalSupply ?? '0',
-      );
-      if (stakingTokenPriceUSD.isNaN()) stakingTokenPriceUSD = new BigNumber(0);
+      const stakingTokenPriceUSD = new BigNumber(stakingToken?.priceUSD ?? '0');
       let aprPerBlock = new BigNumber(rewardRate)
         .div(new BigNumber(10).pow(rewardTokenDecimals))
         .multipliedBy(rewardTokenPriceUSD)
