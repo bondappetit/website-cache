@@ -9,6 +9,8 @@ export interface ProfitDistributor {
   stakingTokenDecimals: number;
   rewardsDuration: string;
   periodFinish: string;
+  lockPeriod: string;
+  lockPeriodDate: Date;
   totalSupply: string;
   blockPoolRate: string;
   dailyPoolRate: string;

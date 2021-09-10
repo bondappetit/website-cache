@@ -85,6 +85,14 @@ export const profitDistributorType = new GraphQLObjectType<ProfitDistributor, Re
       type: GraphQLNonNull(GraphQLString),
       description: 'Block number of staking period finish',
     },
+    lockPeriod: {
+      type: GraphQLNonNull(GraphQLString),
+      description: 'Block number of lock period',
+    },
+    lockPeriodDate: {
+      type: GraphQLNonNull(dateTimeType),
+      description: 'Date of lock period',
+    },
     rewardsDuration: {
       type: GraphQLNonNull(GraphQLString),
       description: 'Rewards duration',

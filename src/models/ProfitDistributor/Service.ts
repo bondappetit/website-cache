@@ -10,6 +10,15 @@ import ERC20 from '@bondappetit/networks/abi/ERC20.json';
 import { AbiItem } from 'web3-utils';
 import { TokenService } from '@models/Token/Service';
 import { makeBatchRequest, NetworkResolverHttp } from '@services/Ethereum/Web3';
+import dayjs from 'dayjs';
+
+function blockToDate(averageBlockTime: string | number, interval: BigNumber | number | string) {
+  return dayjs.unix(
+    new BigNumber(Math.floor(Date.now() / 1000))
+      .plus(new BigNumber(interval).multipliedBy(averageBlockTime))
+      .toNumber(),
+  );
+}
 
 export function factory(
   logger: Factory<Logger>,
@@ -49,12 +58,14 @@ export class ProfitDistributorService {
         totalSupply,
         periodFinish,
         rewardsDuration,
+        lockPeriod,
       ] = await makeBatchRequest(web3, [
         contract.methods.rewardsToken().call,
         contract.methods.stakingToken().call,
         contract.methods.totalSupply().call,
         contract.methods.periodFinish().call,
         contract.methods.rewardsDuration().call,
+        contract.methods.lockPeriod().call,
       ]);
       let rewardRate = await contract.methods.rewardRate().call();
       if (new BigNumber(periodFinish).lt(currentBlockNumber)) {
@@ -101,6 +112,8 @@ export class ProfitDistributorService {
         blockPoolRate: rewardRate,
         periodFinish,
         rewardsDuration,
+        lockPeriod,
+        lockPeriodDate: blockToDate(network.data.averageBlockTime, lockPeriod).toDate(),
         dailyPoolRate: new BigNumber(rewardRate).multipliedBy(blocksPerDay).toFixed(0),
         aprBlock: aprPerBlock.toString(),
         aprDay: new BigNumber(aprPerBlock).multipliedBy(blocksPerDay).toString(),
