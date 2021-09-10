@@ -39,45 +39,48 @@ export class ModelContainer extends Container<typeof AppContainer> {
 
   readonly tokenTable = TokenEntity.tokenTableFactory(this.parent.database);
 
-  readonly tokenService = TokenService.factory(
-    this.parent.logger,
-    this.tokenTable,
-    this.parent.ethereum,
-    this.parent.priceFeed,
-    this.parent.volumeFeed,
-    15,
+  readonly tokenService = singleton(
+    TokenService.factory(
+      this.parent.logger,
+      this.tokenTable,
+      this.parent.ethereum,
+      this.parent.priceFeed,
+      this.parent.volumeFeed,
+      15,
+    ),
   );
 
   readonly uniswapLPTable = UniswapLiquidityPoolEntity.uniswapLiquidityPoolTableFactory(
     this.parent.database,
   );
 
-  readonly uniswapLPService = UniswapLiquidityPoolService.factory(
-    this.parent.logger,
-    this.uniswapLPTable,
-    this.parent.ethereum,
-    this.tokenService,
-    15,
+  readonly uniswapLPService = singleton(
+    UniswapLiquidityPoolService.factory(
+      this.parent.logger,
+      this.uniswapLPTable,
+      this.parent.ethereum,
+      this.tokenService,
+      15,
+    ),
   );
 
   readonly stakingTable = StakingEntity.stakingTableFactory(this.parent.database);
 
-  readonly stakingService = StakingService.factory(
-    this.parent.logger,
-    this.stakingTable,
-    this.parent.ethereum,
-    this.tokenService,
-    this.uniswapLPService,
-    30,
+  readonly stakingService = singleton(
+    StakingService.factory(
+      this.parent.logger,
+      this.stakingTable,
+      this.parent.ethereum,
+      this.tokenService,
+      this.uniswapLPService,
+      30,
+    ),
   );
 
   readonly stakingUserTable = StakingUserEntity.stakingUserTableFactory(this.parent.database);
 
-  readonly stakingUserService = StakingUserService.factory(
-    this.parent.logger,
-    this.stakingUserTable,
-    this.parent.ethereum,
-    15,
+  readonly stakingUserService = singleton(
+    StakingUserService.factory(this.parent.logger, this.stakingUserTable, this.parent.ethereum, 15),
   );
 
   readonly stakingRewardHistory = singleton(
@@ -88,58 +91,61 @@ export class ModelContainer extends Container<typeof AppContainer> {
     this.parent.database,
   );
 
-  readonly profitDistributorService = ProfitDistributorService.factory(
-    this.parent.logger,
-    this.profitDistributorTable,
-    this.parent.ethereum,
-    this.tokenService,
-    30,
+  readonly profitDistributorService = singleton(
+    ProfitDistributorService.factory(
+      this.parent.logger,
+      this.profitDistributorTable,
+      this.parent.ethereum,
+      this.tokenService,
+      30,
+    ),
   );
 
   readonly profitDistributorUserTable = ProfitDistributorUserEntity.profitDistributorUserTableFactory(
     this.parent.database,
   );
 
-  readonly profitDistributorUserService = ProfitDistributorUserService.factory(
-    this.parent.logger,
-    this.profitDistributorUserTable,
-    this.parent.ethereum,
-    this.parent.network,
-    15,
+  readonly profitDistributorUserService = singleton(
+    ProfitDistributorUserService.factory(
+      this.parent.logger,
+      this.profitDistributorUserTable,
+      this.parent.ethereum,
+      this.parent.network,
+      15,
+    ),
   );
 
   readonly mediumPostTable = MediumEntity.mediumPostTableFactory(this.parent.database);
 
-  readonly mediumPostService = MediumService.factory(
-    this.parent.logger,
-    this.parent.database,
-    this.mediumPostTable,
-    this.parent.medium,
-    120,
+  readonly mediumPostService = singleton(
+    MediumService.factory(
+      this.parent.logger,
+      this.parent.database,
+      this.mediumPostTable,
+      this.parent.medium,
+      120,
+    ),
   );
 
   readonly burgerSwapTransitTable = BurgerSwapBridgeEntity.transitTableFactory(
     this.parent.database,
   );
 
-  readonly burgerSwapTransitService = BurgerSwapBridgeService.factory(this.burgerSwapTransitTable);
+  readonly burgerSwapTransitService = singleton(
+    BurgerSwapBridgeService.factory(this.burgerSwapTransitTable),
+  );
 
   readonly walletTable = WalletEntity.walletTableFactory(this.parent.database);
 
-  readonly walletService = WalletService.factory(
-    this.parent.logger,
-    this.walletTable,
-    this.parent.ethereum,
-    15,
+  readonly walletService = singleton(
+    WalletService.factory(this.parent.logger, this.walletTable, this.parent.ethereum, 15),
   );
 
   readonly swopfiLPTable = SwopfiLiquidityPoolEntity.swopfiLiquidityPoolTableFactory(
     this.parent.database,
   );
 
-  readonly swopfiLPService = SwopfiLiquidityPoolService.factory(
-    this.parent.logger,
-    this.swopfiLPTable,
-    60,
+  readonly swopfiLPService = singleton(
+    SwopfiLiquidityPoolService.factory(this.parent.logger, this.swopfiLPTable, 60),
   );
 }
