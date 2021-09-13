@@ -24,6 +24,7 @@ import BigNumber from 'bignumber.js';
 import { mediumPostType } from './graphql/medium';
 import { swopfiPairPayload, swopfiPairType } from './graphql/swopfi';
 import { SwopfiLiquidityPool } from '@models/Swopfi/Entity';
+import dayjs from 'dayjs';
 
 export function use({ server, express }: WebServer) {
   const apollo = new ApolloServer({
@@ -33,69 +34,76 @@ export function use({ server, express }: WebServer) {
         fields: {
           getTVL: {
             type: GraphQLNonNull(GraphQLString),
-            resolve: async () => {
-              const mainETHNetwork = container.network(1);
-              const mainBSCNetwork = container.network(56);
+            resolve: () =>
+              container.memoryCache().cache('tvl', async () => {
+                const mainETHNetwork = container.network(1);
+                const mainBSCNetwork = container.network(56);
 
-              const stakingAddresses = {
-                [mainETHNetwork.data.networkId]: [
-                  mainETHNetwork.data.contracts.UsdcGovLPStaking.address,
-                  mainETHNetwork.data.contracts.UsdcStableLPLockStaking.address,
-                  mainETHNetwork.data.contracts.UsdnGovLPStaking.address,
-                  mainETHNetwork.data.contracts.UsdtGovLPStaking.address,
-                  mainETHNetwork.data.contracts.StableGovLPStaking.address,
-                ],
-                [mainBSCNetwork.data.networkId]: [
-                  mainBSCNetwork.data.contracts.BnbGovLPStaking.address,
-                ],
-              };
-              const stakings = await Promise.all(
-                Object.entries(stakingAddresses).map(([chainId, addresses]) =>
-                  Promise.all(
-                    addresses.map(async (address: string) =>
-                      container.model
-                        .stakingService()
-                        .find(container.network(parseInt(chainId, 10)), address),
+                const stakingAddresses = {
+                  [mainETHNetwork.data.networkId]: [
+                    mainETHNetwork.data.contracts.UsdcGovLPStaking.address,
+                    mainETHNetwork.data.contracts.UsdcStableLPLockStaking.address,
+                    mainETHNetwork.data.contracts.UsdnGovLPStaking.address,
+                    mainETHNetwork.data.contracts.UsdtGovLPStaking.address,
+                    mainETHNetwork.data.contracts.StableGovLPStaking.address,
+                  ],
+                  [mainBSCNetwork.data.networkId]: [
+                    mainBSCNetwork.data.contracts.BnbGovLPStaking.address,
+                  ],
+                };
+                const stakings = await Promise.all(
+                  Object.entries(stakingAddresses).map(([chainId, addresses]) =>
+                    Promise.all(
+                      addresses.map(async (address: string) =>
+                        container.model
+                          .stakingService()
+                          .find(container.network(parseInt(chainId, 10)), address),
+                      ),
                     ),
                   ),
-                ),
-              );
-              const stakingTVL = await ([] as Array<Staking | undefined>)
-                .concat(...stakings)
-                .reduce(async (sum: Promise<BigNumber>, staking: Staking | undefined) => {
-                  if (staking === undefined) return sum;
+                );
+                const stakingTVL = await ([] as Array<Staking | undefined>)
+                  .concat(...stakings)
+                  .reduce(async (sum: Promise<BigNumber>, staking: Staking | undefined) => {
+                    if (staking === undefined) return sum;
 
-                  const pair = await container.model
-                    .uniswapLPService()
-                    .find(container.network(staking.network), staking.stakingToken);
-                  if (pair === undefined) return sum;
+                    const pair = await container.model
+                      .uniswapLPService()
+                      .find(container.network(staking.network), staking.stakingToken);
+                    if (pair === undefined) return sum;
 
-                  return (await sum).plus(
-                    new BigNumber(pair.totalLiquidityUSD)
-                      .div(pair.totalSupply)
-                      .multipliedBy(
-                        new BigNumber(staking.totalSupply).div(
-                          new BigNumber(10).pow(staking.stakingTokenDecimals),
+                    return (await sum).plus(
+                      new BigNumber(pair.totalLiquidityUSD)
+                        .div(pair.totalSupply)
+                        .multipliedBy(
+                          new BigNumber(staking.totalSupply).div(
+                            new BigNumber(10).pow(staking.stakingTokenDecimals),
+                          ),
                         ),
-                      ),
+                    );
+                  }, Promise.resolve(new BigNumber(0)));
+                const swopfiAddresses = ['3PAgYAV4jYJ7BF8LCVNU9tyWCBtQaqeLQH4'];
+                const swopfis = await Promise.all(
+                  swopfiAddresses.map(async (address: string) =>
+                    container.model.swopfiLPService().find(0, address),
+                  ),
+                );
+                const swopfiTVL = await ([] as Array<SwopfiLiquidityPool | undefined>)
+                  .concat(...swopfis)
+                  .reduce(
+                    async (sum: Promise<BigNumber>, pool: SwopfiLiquidityPool | undefined) => {
+                      if (pool === undefined) return sum;
+
+                      return new BigNumber(pool.totalLiquidityUSD).div('1000000').plus(await sum);
+                    },
+                    Promise.resolve(new BigNumber(0)),
                   );
-                }, Promise.resolve(new BigNumber(0)));
-              const swopfiAddresses = ['3PAgYAV4jYJ7BF8LCVNU9tyWCBtQaqeLQH4'];
-              const swopfis = await Promise.all(
-                swopfiAddresses.map(async (address: string) =>
-                  container.model.swopfiLPService().find(0, address),
-                ),
-              );
-              const swopfiTVL = await ([] as Array<SwopfiLiquidityPool | undefined>)
-                .concat(...swopfis)
-                .reduce(async (sum: Promise<BigNumber>, pool: SwopfiLiquidityPool | undefined) => {
-                  if (pool === undefined) return sum;
 
-                  return new BigNumber(pool.totalLiquidityUSD).div('1000000').plus(await sum);
-                }, Promise.resolve(new BigNumber(0)));
-
-              return new BigNumber(stakingTVL).plus(swopfiTVL).toFixed(2);
-            },
+                return [
+                  new BigNumber(stakingTVL).plus(swopfiTVL).toFixed(2),
+                  dayjs().add(1, 'minutes').toDate(),
+                ];
+              }),
           },
           token: {
             type: GraphQLNonNull(tokenPayload),

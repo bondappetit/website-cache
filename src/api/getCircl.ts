@@ -5,6 +5,7 @@ import BigNumber from 'bignumber.js';
 import { Request, Response } from 'express';
 import networks from '@bondappetit/networks';
 import { AbiItem } from 'web3-utils';
+import dayjs from 'dayjs';
 
 export const periodStart = ({ periodFinish, rewardsDuration }: Staking) => {
   if (periodFinish === '0') return '0';
@@ -35,98 +36,107 @@ export const earned = (staking: Staking, currentBlockNumber: number) => {
 };
 
 export async function getCircl(req: Request, res: Response) {
-  const mainETHNetwork = container.network(1);
-  const mainBSCNetwork = container.network(56);
-  const stakingAddresses = [
-    {
-      network: mainETHNetwork,
-      address: mainETHNetwork.data.contracts.UsdcGovLPStaking.address,
-    },
-    {
-      network: mainETHNetwork,
-      address: mainETHNetwork.data.contracts.UsdcStableLPLockStaking.address,
-    },
-    {
-      network: mainETHNetwork,
-      address: mainETHNetwork.data.contracts.UsdnGovLPStaking.address,
-    },
-    {
-      network: mainETHNetwork,
-      address: mainETHNetwork.data.contracts.UsdtGovLPStaking.address,
-    },
-    {
-      network: mainETHNetwork,
-      address: mainETHNetwork.data.contracts.StableGovLPStaking.address,
-    },
-    {
-      network: mainBSCNetwork,
-      address: mainBSCNetwork.data.contracts.BnbGovLPStaking.address,
-    },
-  ];
-  const currentBlockNumber = new Map();
-  const mainEthProvider = container.ethereum.get(mainETHNetwork.id);
-  if (!mainEthProvider) return res.send('0');
-  const mainBscProvider = container.ethereum.get(mainBSCNetwork.id);
-  if (!mainBscProvider) return res.send('0');
-  currentBlockNumber.set(mainETHNetwork.id, await mainEthProvider.eth.getBlockNumber());
-  currentBlockNumber.set(mainBSCNetwork.id, await mainBscProvider.eth.getBlockNumber());
+  const value = await container.memoryCache().cache('circl-gov', async () => {
+    const mainETHNetwork = container.network(1);
+    const mainBSCNetwork = container.network(56);
+    const stakingAddresses = [
+      {
+        network: mainETHNetwork,
+        address: mainETHNetwork.data.contracts.UsdcGovLPStaking.address,
+      },
+      {
+        network: mainETHNetwork,
+        address: mainETHNetwork.data.contracts.UsdcStableLPLockStaking.address,
+      },
+      {
+        network: mainETHNetwork,
+        address: mainETHNetwork.data.contracts.UsdnGovLPStaking.address,
+      },
+      {
+        network: mainETHNetwork,
+        address: mainETHNetwork.data.contracts.UsdtGovLPStaking.address,
+      },
+      {
+        network: mainETHNetwork,
+        address: mainETHNetwork.data.contracts.StableGovLPStaking.address,
+      },
+      {
+        network: mainBSCNetwork,
+        address: mainBSCNetwork.data.contracts.BnbGovLPStaking.address,
+      },
+    ];
+    const currentBlockNumber = new Map();
+    const mainEthProvider = container.ethereum.get(mainETHNetwork.id);
+    if (!mainEthProvider) return ['0', dayjs().add(1, 'minutes').toDate()];
+    const mainBscProvider = container.ethereum.get(mainBSCNetwork.id);
+    if (!mainBscProvider) return ['0', dayjs().add(1, 'minutes').toDate()];
+    currentBlockNumber.set(mainETHNetwork.id, await mainEthProvider.eth.getBlockNumber());
+    currentBlockNumber.set(mainBSCNetwork.id, await mainBscProvider.eth.getBlockNumber());
 
-  const stakingService = container.model.stakingService();
-  const stakingRewardHistoryService = container.model.stakingRewardHistory();
-  const stakings = await stakingAddresses.reduce(async (prev, { network, address }) => {
-    const res = await prev;
+    const stakingService = container.model.stakingService();
+    const stakingRewardHistoryService = container.model.stakingRewardHistory();
+    const stakings = await stakingAddresses.reduce(async (prev, { network, address }) => {
+      const res = await prev;
 
-    const staking = await stakingService.find(network, address.toLowerCase());
-    if (!staking) return res;
+      const staking = await stakingService.find(network, address.toLowerCase());
+      if (!staking) return res;
 
-    const rewardHistory = await stakingRewardHistoryService.find(staking);
+      const rewardHistory = await stakingRewardHistoryService.find(staking);
+
+      return [
+        ...res,
+        { staking, rewardHistory, currentBlock: currentBlockNumber.get(network.id) ?? 0 },
+      ];
+    }, Promise.resolve([]) as Promise<Array<{ staking: Staking; rewardHistory: RewardHistory[]; currentBlock: number }>>);
+
+    const { totalEarned, totalSupply } = stakings.reduce(
+      (result, { staking, rewardHistory, currentBlock }) => {
+        const totalEarnedSum = rewardHistory.reduce(
+          (result, { totalEarned }) => result.plus(totalEarned),
+          new BigNumber('0'),
+        );
+        const totalSupplySum = rewardHistory.reduce(
+          (result, { totalReward }) => result.plus(totalReward),
+          new BigNumber('0'),
+        );
+
+        return {
+          totalEarned: result.totalEarned.plus(earned(staking, currentBlock)).plus(totalEarnedSum),
+          totalSupply: result.totalSupply.plus(rewardForDuration(staking)).plus(totalSupplySum),
+        };
+      },
+      { totalEarned: new BigNumber('0'), totalSupply: new BigNumber('0') },
+    );
+
+    const bag = new mainEthProvider.eth.Contract(
+      networks.main.contracts.Governance.abi as AbiItem[],
+      networks.main.contracts.Governance.address,
+    );
+
+    // marketingBalance
+    const marketingBalance = await bag.methods
+      .balanceOf('0x5D17016bF168FfF34177A53474B949dEBd87ca40')
+      .call();
+    const marketingBalanceNormalize = new BigNumber(marketingBalance).div(
+      new BigNumber(10).pow(networks.main.assets.Governance.decimals),
+    );
+
+    // investmentBalance
+    const investmentBalance = await bag.methods
+      .balanceOf('0xaa1018F90ff82F058b1Ec7aa3D72A243F66300Bd')
+      .call();
+    const investmentBalanceNormalize = new BigNumber(investmentBalance).div(
+      new BigNumber(10).pow(networks.main.assets.Governance.decimals),
+    );
 
     return [
-      ...res,
-      { staking, rewardHistory, currentBlock: currentBlockNumber.get(network.id) ?? 0 },
+      new BigNumber(totalEarned)
+        .plus(new BigNumber('500000').minus(marketingBalanceNormalize))
+        .plus(new BigNumber('480000').minus(investmentBalanceNormalize))
+        .toString(10),
+      dayjs().add(1, 'minutes').toDate(),
     ];
-  }, Promise.resolve([]) as Promise<Array<{ staking: Staking; rewardHistory: RewardHistory[]; currentBlock: number }>>);
+  });
 
-  const { totalEarned, totalSupply } = stakings.reduce(
-    (result, { staking, rewardHistory, currentBlock }) => {
-      const totalEarnedSum = rewardHistory.reduce(
-        (result, { totalEarned }) => result.plus(totalEarned),
-        new BigNumber('0'),
-      );
-      const totalSupplySum = rewardHistory.reduce(
-        (result, { totalReward }) => result.plus(totalReward),
-        new BigNumber('0'),
-      );
-
-      return {
-        totalEarned: result.totalEarned.plus(earned(staking, currentBlock)).plus(totalEarnedSum),
-        totalSupply: result.totalSupply.plus(rewardForDuration(staking)).plus(totalSupplySum),
-      };
-    },
-    { totalEarned: new BigNumber('0'), totalSupply: new BigNumber('0') },
-  );
-
-  const bag = new mainEthProvider.eth.Contract(
-    networks.main.contracts.Governance.abi as AbiItem[],
-    networks.main.contracts.Governance.address,
-  );
-
-  // marketingBalance
-  const marketingBalance = await bag.methods.balanceOf('0x5D17016bF168FfF34177A53474B949dEBd87ca40').call();
-  const marketingBalanceNormalize = new BigNumber(marketingBalance).div(
-    new BigNumber(10).pow(networks.main.assets.Governance.decimals),
-  );
-
-  // investmentBalance
-  const investmentBalance = await bag.methods.balanceOf('0xaa1018F90ff82F058b1Ec7aa3D72A243F66300Bd').call();
-  const investmentBalanceNormalize = new BigNumber(investmentBalance).div(
-    new BigNumber(10).pow(networks.main.assets.Governance.decimals),
-  );
-
-  return res.send(
-    new BigNumber(totalEarned)
-      .plus(new BigNumber('500000').minus(marketingBalanceNormalize))
-      .plus(new BigNumber('480000').minus(investmentBalanceNormalize))
-      .toString(10),
-  );
+  return res.send(value);
 }
