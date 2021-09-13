@@ -14,6 +14,7 @@ import {
 import { tokenPayload, tokenType } from './graphql/token';
 import { uniswapPairPayload, uniswapPairType } from './graphql/uniswapPair';
 import { addressScalar } from './graphql/types';
+import { createComplexityLimitRule } from 'graphql-validation-complexity-types';
 import { currentNetwork } from './middlewares/currentNetwork';
 import { stakingPayload, stakingType } from './graphql/staking';
 import { profitDistributorPayload, profitDistributorType } from './graphql/profitDistributor';
@@ -27,12 +28,18 @@ import { SwopfiLiquidityPool } from '@models/Swopfi/Entity';
 import dayjs from 'dayjs';
 
 export function use({ server, express }: WebServer) {
+  const logger = container.logger();
+  const complexityLimit = createComplexityLimitRule(5000, {
+    onCost: (cost) => logger.info(`Query complexity ${cost}`),
+  });
+
   const apollo = new ApolloServer({
     schema: new GraphQLSchema({
       query: new GraphQLObjectType<undefined, Request>({
         name: 'Query',
         fields: {
           getTVL: {
+            description: 'test',
             type: GraphQLNonNull(GraphQLString),
             resolve: () =>
               container.memoryCache().cache('tvl', async () => {
@@ -449,6 +456,7 @@ export function use({ server, express }: WebServer) {
     subscriptions: '/api',
     playground: true,
     context: ({ req }) => req,
+    validationRules: [complexityLimit],
   });
   apollo.installSubscriptionHandlers(server);
   express.use('/', [currentNetwork, json(), apollo.getMiddleware({ path: '/' })]);
