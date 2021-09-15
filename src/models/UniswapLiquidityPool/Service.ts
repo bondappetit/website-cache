@@ -84,8 +84,8 @@ export class UniswapLiquidityPoolService {
         },
       }),
     ]);
-    if (dayRes.status !== 200) throw Error(dayRes.statusText);
-    if (hourRes.status !== 200) throw Error(hourRes.statusText);
+    if (dayRes.status !== 200) return undefined;
+    if (hourRes.status !== 200) return undefined;
 
     const {
       data: {

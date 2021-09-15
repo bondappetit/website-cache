@@ -63,7 +63,7 @@ export class TokenService {
             }`,
       },
     });
-    if (res.status !== 200) throw Error(res.statusText);
+    if (res.status !== 200) return undefined;
 
     const {
       data: {
