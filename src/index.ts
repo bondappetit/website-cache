@@ -5,7 +5,7 @@ import { getCircl } from './api/getCircl';
 import { getCirclStable } from './api/getCirclStable';
 
 container.model
-  .migrationService()
+  .migrationService
   .up()
   .then(() => {
     const web = container.webServer();
@@ -14,5 +14,5 @@ container.model
     web.express.get('/circl-stable', getCirclStable);
     router.use(web);
 
-    web.listen().then(({ port }) => container.logger().info(`Listen ${port}`));
+    web.listen().then(({ port }) => container.logger.info(`Listen ${port}`));
   });

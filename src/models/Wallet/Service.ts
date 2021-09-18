@@ -7,7 +7,7 @@ import { Wallet, WalletTable } from './Entity';
 import { NetworkResolverHttp } from '@services/Ethereum/Web3';
 
 export function factory(
-  logger: Factory<Logger>,
+  logger: Logger,
   table: Factory<WalletTable>,
   web3Resolver: NetworkResolverHttp,
   ttl: number,
@@ -17,7 +17,7 @@ export function factory(
 
 export class WalletService {
   constructor(
-    readonly logger: Factory<Logger> = logger,
+    readonly logger: Logger = logger,
     readonly table: Factory<WalletTable> = table,
     readonly web3Resolver: NetworkResolverHttp = web3Resolver,
     readonly ttl: number = ttl,
@@ -44,11 +44,11 @@ export class WalletService {
           updatedAt: new Date(),
         };
       } catch (e) {
-        this.logger().error(`Invalid wallet "${network.id}:${address}" request: ${e}`);
+        this.logger.error(`Invalid wallet "${network.id}:${address}" request: ${e}`);
         return undefined;
       }
     }).catch(({ error, cached }) => {
-      this.logger().error(error);
+      this.logger.error(error);
       return cached;
     });
   }

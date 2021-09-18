@@ -1,10 +1,6 @@
 import dayjs from 'dayjs';
 import { Logger } from './Logger';
 
-export function factory() {
-  return () => new ConsoleLogger();
-}
-
 export class ConsoleLogger implements Logger {
   format(type: string, msg: string) {
     return `${type} [${dayjs().format('DD-MM-YYYY HH:mm:ss Z')}]: ${msg}`;

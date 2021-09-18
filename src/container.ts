@@ -12,11 +12,11 @@ import { MemoryCache } from '@services/Cache/Memory';
 import config from './config';
 
 class AppContainer extends Container<typeof config> {
-  readonly logger = singleton(Logger.factory());
+  readonly logger = new Logger.ConsoleLogger();
 
   readonly webServer = singleton(Express.factory(this.parent.container.webServer));
 
-  readonly database = singleton(Database.factory(this.parent.container.database));
+  readonly database = Database.factory(this.parent.container.database);
 
   readonly ethereum = Web3.networkResolverHttpFactory(this.parent.container.ethereum);
 
@@ -28,7 +28,7 @@ class AppContainer extends Container<typeof config> {
 
   readonly medium = Medium.factory(this.parent.container.medium.url);
 
-  readonly memoryCache = singleton(() => new MemoryCache());
+  readonly memoryCache = new MemoryCache();
 
   readonly model = new ModelContainer(this);
 }

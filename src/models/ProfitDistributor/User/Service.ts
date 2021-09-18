@@ -20,7 +20,7 @@ function blockToDate(averageBlockTime: string | number, interval: BigNumber | nu
 }
 
 export function factory(
-  logger: Factory<Logger>,
+  logger: Logger,
   table: Factory<ProfitDistributorUserTable>,
   web3Resolver: NetworkResolverHttp,
   networkFactory: typeof Network.factory,
@@ -31,7 +31,7 @@ export function factory(
 
 export class ProfitDistributorUserService {
   constructor(
-    readonly logger: Factory<Logger> = logger,
+    readonly logger: Logger = logger,
     readonly table: Factory<ProfitDistributorUserTable> = table,
     readonly web3Resolver: NetworkResolverHttp = web3Resolver,
     readonly networkFactory: typeof Network.factory,
@@ -99,7 +99,7 @@ export class ProfitDistributorUserService {
         updatedAt: new Date(),
       };
     }).catch(({ error, cached }) => {
-      this.logger().error(error);
+      this.logger.error(error);
       return cached;
     });
   }

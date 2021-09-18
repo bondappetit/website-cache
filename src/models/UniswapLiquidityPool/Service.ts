@@ -13,7 +13,7 @@ import BigNumber from 'bignumber.js';
 import { TokenService } from '@models/Token/Service';
 
 export function factory(
-  logger: Factory<Logger>,
+  logger: Logger,
   table: Factory<UniswapLiquidityPoolTable>,
   web3Resolver: NetworkResolverHttp,
   tokenService: Factory<TokenService>,
@@ -29,7 +29,7 @@ const thegraphUrlMap: { [k: number]: string } = {
 
 export class UniswapLiquidityPoolService {
   constructor(
-    readonly logger: Factory<Logger> = logger,
+    readonly logger: Logger = logger,
     readonly table: Factory<UniswapLiquidityPoolTable> = table,
     readonly web3Resolver: NetworkResolverHttp = web3Resolver,
     readonly tokenService: Factory<TokenService> = tokenService,
@@ -173,7 +173,7 @@ export class UniswapLiquidityPoolService {
         updatedAt: new Date(),
       };
     }).catch(({ error, cached }) => {
-      this.logger().error(error);
+      this.logger.error(error);
       return cached;
     });
   }

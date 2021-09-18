@@ -28,13 +28,12 @@ import * as SwopfiLiquidityPoolService from './Swopfi/Service';
 export class ModelContainer extends Container<typeof AppContainer> {
   readonly migrationTable = MigrationEntity.migrationTableFactory(this.parent.database);
 
-  readonly migrationService = singleton(
-    MigrationService.factory(
-      this.parent.logger,
-      this.parent.database,
-      this.migrationTable,
-      resolve(__dirname, '../migrations'),
-    ),
+  readonly migrationService = new MigrationService.MigrationService(
+    this.parent.logger,
+    this.parent.database,
+    this.migrationTable,
+    resolve(__dirname, '../migrations'),
+    /^M[0-9]+[A-Za-z0-9_]+\.(ts|js)$/i,
   );
 
   readonly tokenTable = TokenEntity.tokenTableFactory(this.parent.database);
@@ -118,13 +117,7 @@ export class ModelContainer extends Container<typeof AppContainer> {
   readonly mediumPostTable = MediumEntity.mediumPostTableFactory(this.parent.database);
 
   readonly mediumPostService = singleton(
-    MediumService.factory(
-      this.parent.logger,
-      this.parent.database,
-      this.mediumPostTable,
-      this.parent.medium,
-      120,
-    ),
+    MediumService.factory(this.parent.database, this.mediumPostTable, this.parent.medium, 120),
   );
 
   readonly burgerSwapTransitTable = BurgerSwapBridgeEntity.transitTableFactory(

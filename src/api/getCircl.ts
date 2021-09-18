@@ -36,7 +36,7 @@ export const earned = (staking: Staking, currentBlockNumber: number) => {
 };
 
 export async function getCircl(req: Request, res: Response) {
-  const value = await container.memoryCache().cache('circl-gov', async () => {
+  const value = await container.memoryCache.cache('circl-gov', async () => {
     const mainETHNetwork = container.network(1);
     const mainBSCNetwork = container.network(56);
     const stakingAddresses = [

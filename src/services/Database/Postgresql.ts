@@ -9,9 +9,8 @@ export interface FactoryConfig {
 }
 
 export function factory(config: FactoryConfig) {
-  return () =>
-    knex({
-      client: 'pg',
-      connection: config,
-    });
+  return knex({
+    client: 'pg',
+    connection: config,
+  });
 }

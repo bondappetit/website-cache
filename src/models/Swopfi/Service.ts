@@ -79,7 +79,7 @@ export interface AssetInfo {
 }
 
 export function factory(
-  logger: Factory<Logger>,
+  logger: Logger,
   table: Factory<SwopfiLiquidityPoolTable>,
   ttl: number,
 ) {
@@ -90,7 +90,7 @@ const swopTokenId = 'Ehie5xYpeN8op1Cctc6aGUrqx8jq3jtf1DSjXDbfm7aT';
 
 export class SwopfiLiquidityPoolService {
   constructor(
-    readonly logger: Factory<Logger> = logger,
+    readonly logger: Logger = logger,
     readonly table: Factory<SwopfiLiquidityPoolTable> = table,
     readonly ttl: number = ttl,
   ) {}
@@ -189,7 +189,7 @@ export class SwopfiLiquidityPoolService {
         updatedAt: new Date(),
       };
     }).catch(({ error, cached }) => {
-      this.logger().error(error);
+      this.logger.error(error);
       return cached;
     });
   }

@@ -12,20 +12,10 @@ export interface MigrationHandlerList {
   [name: string]: MigrationHandler;
 }
 
-export function factory(
-  logger: Factory<Logger>,
-  database: Factory<Knex>,
-  table: Factory<MigrationTable>,
-  dir: string,
-  pattern: RegExp = /^M[0-9]+[A-Za-z0-9_]+\.(ts|js)$/i,
-) {
-  return () => new MigrationService(logger, database, table, dir, pattern);
-}
-
 export class MigrationService {
   constructor(
-    readonly logger: Factory<Logger> = logger,
-    readonly database: Factory<Knex> = database,
+    readonly logger: Logger = logger,
+    readonly database: Knex = database,
     readonly table: Factory<MigrationTable> = table,
     readonly dir: string,
     readonly pattern: RegExp,
@@ -70,13 +60,13 @@ export class MigrationService {
     const candidates = Object.entries(migrations).filter(([name]) => !completed.includes(name));
     if (Object.keys(candidates).length === 0) return this;
 
-    this.logger().info('Migrations up');
+    this.logger.info('Migrations up');
 
     candidates.reverse();
     const queue = candidates.reduce(
       (next, [name, migration]) => async () => {
-        this.logger().info(`Migration up: ${name}`);
-        await migration(this.database().schema);
+        this.logger.info(`Migration up: ${name}`);
+        await migration(this.database.schema);
         await this.table().insert({
           name,
           createdAt: new Date(),
@@ -84,7 +74,7 @@ export class MigrationService {
         await next();
       },
       () => {
-        this.logger().info('Migrations completed');
+        this.logger.info('Migrations completed');
       },
     );
 

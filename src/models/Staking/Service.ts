@@ -14,7 +14,7 @@ import { UniswapLiquidityPoolService } from '@models/UniswapLiquidityPool/Servic
 import { makeBatchRequest, NetworkResolverHttp } from '@services/Ethereum/Web3';
 
 export function factory(
-  logger: Factory<Logger>,
+  logger: Logger,
   table: Factory<StakingTable>,
   web3Resolver: NetworkResolverHttp,
   tokenService: Factory<TokenService>,
@@ -34,7 +34,7 @@ export function symbolToStakingTokenType(symbol: string): StakingTokenType {
 
 export class StakingService {
   constructor(
-    readonly logger: Factory<Logger> = logger,
+    readonly logger: Logger = logger,
     readonly table: Factory<StakingTable> = table,
     readonly web3Resolver: NetworkResolverHttp = web3Resolver,
     readonly tokenService: Factory<TokenService> = tokenService,
@@ -163,7 +163,7 @@ export class StakingService {
         updatedAt: new Date(),
       };
     }).catch(({ error, cached }) => {
-      this.logger().error(error);
+      this.logger.error(error);
       return cached;
     });
   }

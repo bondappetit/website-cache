@@ -28,9 +28,8 @@ import { SwopfiLiquidityPool } from '@models/Swopfi/Entity';
 import dayjs from 'dayjs';
 
 export function use({ server, express }: WebServer) {
-  const logger = container.logger();
   const complexityLimit = createComplexityLimitRule(5000, {
-    onCost: (cost) => logger.info(`Query complexity ${cost}`),
+    onCost: (cost) => container.logger.info(`Query complexity ${cost}`),
   });
 
   const apollo = new ApolloServer({
@@ -42,7 +41,7 @@ export function use({ server, express }: WebServer) {
             description: 'test',
             type: GraphQLNonNull(GraphQLString),
             resolve: () =>
-              container.memoryCache().cache('tvl', async () => {
+              container.memoryCache.cache('tvl', async () => {
                 const mainETHNetwork = container.network(1);
                 const mainBSCNetwork = container.network(56);
 

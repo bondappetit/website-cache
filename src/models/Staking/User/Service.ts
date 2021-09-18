@@ -9,7 +9,7 @@ import StakingABI from '@bondappetit/networks/abi/Staking.json';
 import { AbiItem } from 'web3-utils';
 
 export function factory(
-  logger: Factory<Logger>,
+  logger: Logger,
   table: Factory<StakingUserTable>,
   web3Resolver: NetworkResolverHttp,
   ttl: number,
@@ -19,7 +19,7 @@ export function factory(
 
 export class StakingUserService {
   constructor(
-    readonly logger: Factory<Logger> = logger,
+    readonly logger: Logger = logger,
     readonly table: Factory<StakingUserTable> = table,
     readonly web3Resolver: NetworkResolverHttp = web3Resolver,
     readonly ttl: number = ttl,
@@ -52,7 +52,7 @@ export class StakingUserService {
         updatedAt: new Date(),
       };
     }).catch(({ error, cached }) => {
-      this.logger().error(error);
+      this.logger.error(error);
       return cached;
     });
   }

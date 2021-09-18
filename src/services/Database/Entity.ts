@@ -3,9 +3,7 @@ import dayjs from 'dayjs';
 import Knex, { DbRecord, QueryBuilder, ResolveTableType } from 'knex';
 
 export function tableFactory<T>(table: string, schema: string = 'public') {
-  return (connectFactory: Factory<Knex>) => () => {
-    const connect = connectFactory();
-
+  return (connect: Knex) => () => {
     return connect<T, T[]>(table).withSchema(schema);
   };
 }

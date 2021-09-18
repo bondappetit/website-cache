@@ -12,7 +12,7 @@ import axios from 'axios';
 import { NetworkResolverHttp } from '@services/Ethereum/Web3';
 
 export function factory(
-  logger: Factory<Logger>,
+  logger: Logger,
   table: Factory<TokenTable>,
   web3Resolver: NetworkResolverHttp,
   getPriceFeed: PriceFeed.Factory,
@@ -24,7 +24,7 @@ export function factory(
 
 export class TokenService {
   constructor(
-    readonly logger: Factory<Logger> = logger,
+    readonly logger: Logger = logger,
     readonly table: Factory<TokenTable> = table,
     readonly web3Resolver: NetworkResolverHttp = web3Resolver,
     readonly getPriceFeed: PriceFeed.Factory = getPriceFeed,
@@ -120,7 +120,7 @@ export class TokenService {
         updatedAt: new Date(),
       };
     }).catch(({ error, cached }) => {
-      this.logger().error(error);
+      this.logger.error(error);
       return cached;
     });
   }

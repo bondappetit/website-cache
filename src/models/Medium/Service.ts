@@ -6,19 +6,17 @@ import Knex from 'knex';
 import { MediumPost, MediumPostTable } from './Entity';
 
 export function factory(
-  logger: Factory<Logger>,
-  database: Factory<Knex>,
+  database: Knex,
   postTable: Factory<MediumPostTable>,
   mediumRss: MediumRssGetter,
   ttl: number,
 ) {
-  return () => new MediumService(logger, database, postTable, mediumRss, ttl);
+  return () => new MediumService(database, postTable, mediumRss, ttl);
 }
 
 export class MediumService {
   constructor(
-    readonly logger: Factory<Logger> = logger,
-    readonly database: Factory<Knex> = database,
+    readonly database: Knex = database,
     readonly postTable: Factory<MediumPostTable> = postTable,
     readonly mediumRss: MediumRssGetter = mediumRss,
     readonly ttl: number = ttl,
@@ -43,7 +41,7 @@ export class MediumService {
         updatedAt: new Date(),
       }),
     );
-    await this.database().transaction(async (trx) => {
+    await this.database.transaction(async (trx) => {
       await this.postTable().delete().transacting(trx);
       await Promise.all(posts.map((post) => this.postTable().insert(post).transacting(trx)));
     });

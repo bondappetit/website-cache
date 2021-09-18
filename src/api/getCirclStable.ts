@@ -7,7 +7,7 @@ import dayjs from 'dayjs';
 import { makeBatchRequest } from '@services/Ethereum/Web3';
 
 export async function getCirclStable(req: Request, res: Response) {
-  const value = await container.memoryCache().cache('circl-stable', async () => {
+  const value = await container.memoryCache.cache('circl-stable', async () => {
     const mainEthProvider = container.ethereum.get(1);
     if (!mainEthProvider) return ['0', dayjs().add(1, 'minutes').toDate()];
     const mainETHNetwork = container.network(1);
