@@ -17,7 +17,20 @@ export function cached<T extends { updatedAt: Date }>(
     resolve: (cached: T | undefined) => Promise<T | undefined>,
   ) => {
     const cached = await table().where(where).first();
-    if (cached && cached.updatedAt >= dayjs().subtract(ttl, 'seconds').toDate()) return cached;
+    if (cached) {
+      if (cached.updatedAt >= dayjs().subtract(ttl, 'seconds').toDate()) return cached;
+
+      const updatedCount = await table()
+        .update({
+          ...cached,
+          updatedAt: new Date(),
+        } as any)
+        .where({
+          ...where,
+          updatedAt: cached.updatedAt,
+        });
+      if (updatedCount === 0) return cached;
+    }
 
     try {
       const entity = await resolve(cached as T | undefined);
