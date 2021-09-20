@@ -13,17 +13,6 @@ import { TokenService } from '@models/Token/Service';
 import { UniswapLiquidityPoolService } from '@models/UniswapLiquidityPool/Service';
 import { makeBatchRequest, NetworkResolverHttp } from '@services/Ethereum/Web3';
 
-export function factory(
-  logger: Logger,
-  table: Factory<StakingTable>,
-  web3Resolver: NetworkResolverHttp,
-  tokenService: Factory<TokenService>,
-  pairService: Factory<UniswapLiquidityPoolService>,
-  ttl: number,
-) {
-  return () => new StakingService(logger, table, web3Resolver, tokenService, pairService, ttl);
-}
-
 export function symbolToStakingTokenType(symbol: string): StakingTokenType {
   if (['UNI-V2', 'Cake-LP'].includes(symbol)) {
     return StakingTokenType.UniswapLP;
@@ -34,12 +23,12 @@ export function symbolToStakingTokenType(symbol: string): StakingTokenType {
 
 export class StakingService {
   constructor(
-    readonly logger: Logger = logger,
-    readonly table: Factory<StakingTable> = table,
-    readonly web3Resolver: NetworkResolverHttp = web3Resolver,
-    readonly tokenService: Factory<TokenService> = tokenService,
-    readonly pairService: Factory<UniswapLiquidityPoolService> = pairService,
-    readonly ttl: number = ttl,
+    readonly logger: Logger,
+    readonly table: Factory<StakingTable>,
+    readonly web3Resolver: NetworkResolverHttp,
+    readonly tokenService: TokenService,
+    readonly pairService: UniswapLiquidityPoolService,
+    readonly ttl: number,
   ) {}
 
   async find(network: Network, address: EthAddress): Promise<Staking | undefined> {
@@ -91,8 +80,8 @@ export class StakingService {
         stakingTokenContract.methods.symbol().call,
       ]);
       const [rewardToken, stakingToken] = await Promise.all([
-        this.tokenService().find(network, rewardTokenAddress.toLowerCase()),
-        this.pairService().find(network, stakingTokenAddress.toLowerCase()),
+        this.tokenService.find(network, rewardTokenAddress.toLowerCase()),
+        this.pairService.find(network, stakingTokenAddress.toLowerCase()),
       ]);
       const rewardTokenPriceUSD = new BigNumber(rewardToken?.priceUSD ?? '0');
       let stakingTokenPriceUSD = new BigNumber(stakingToken?.totalLiquidityUSD ?? '0').div(

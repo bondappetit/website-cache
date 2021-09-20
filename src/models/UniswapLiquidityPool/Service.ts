@@ -12,16 +12,6 @@ import { NetworkResolverHttp, makeBatchRequest } from '@services/Ethereum/Web3';
 import BigNumber from 'bignumber.js';
 import { TokenService } from '@models/Token/Service';
 
-export function factory(
-  logger: Logger,
-  table: Factory<UniswapLiquidityPoolTable>,
-  web3Resolver: NetworkResolverHttp,
-  tokenService: Factory<TokenService>,
-  ttl: number,
-) {
-  return () => new UniswapLiquidityPoolService(logger, table, web3Resolver, tokenService, ttl);
-}
-
 const thegraphUrlMap: { [k: number]: string } = {
   1: 'https://api.thegraph.com/subgraphs/name/ianlapham/uniswapv2',
   // 56: 'https://api.thegraph.com/subgraphs/name/bscnodes/pancakeswap',
@@ -29,11 +19,11 @@ const thegraphUrlMap: { [k: number]: string } = {
 
 export class UniswapLiquidityPoolService {
   constructor(
-    readonly logger: Logger = logger,
-    readonly table: Factory<UniswapLiquidityPoolTable> = table,
-    readonly web3Resolver: NetworkResolverHttp = web3Resolver,
-    readonly tokenService: Factory<TokenService> = tokenService,
-    readonly ttl: number = ttl,
+    readonly logger: Logger,
+    readonly table: Factory<UniswapLiquidityPoolTable>,
+    readonly web3Resolver: NetworkResolverHttp,
+    readonly tokenService: TokenService,
+    readonly ttl: number,
   ) {}
 
   async getLastDayPairStat(network: Network, address: EthAddress) {
@@ -139,8 +129,8 @@ export class UniswapLiquidityPoolService {
       ]);
 
       const [token0, token1] = await Promise.all([
-        this.tokenService().find(network, token0Address.toLowerCase()),
-        this.tokenService().find(network, token1Address.toLowerCase()),
+        this.tokenService.find(network, token0Address.toLowerCase()),
+        this.tokenService.find(network, token1Address.toLowerCase()),
       ]);
       const { dailyVolumeUSD } = (await this.getLastDayPairStat(network, address)) ?? {
         dailyVolumeUSD: '0',

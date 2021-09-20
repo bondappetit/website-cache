@@ -3,12 +3,8 @@ import { Factory } from '@services/Container';
 import { Network } from '@services/Network/Network';
 import { Transit, TransitTable, TransitType } from './Entity';
 
-export function factory(table: Factory<TransitTable>) {
-  return () => new TransitService(table);
-}
-
 export class TransitService {
-  constructor(public readonly table: Factory<TransitTable> = table) {}
+  constructor(public readonly table: Factory<TransitTable>) {}
 
   async add(network: Network, tx: TxHash, type: TransitType, owner: EthAddress): Promise<Transit> {
     const transit = {

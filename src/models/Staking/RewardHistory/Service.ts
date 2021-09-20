@@ -8,7 +8,7 @@ export interface RewardHistory {
 }
 
 export class RewardHistoryService {
-  constructor(public readonly data: RewardHistory[] = data) {}
+  constructor(public readonly data: RewardHistory[]) {}
 
   find({ address }: Staking): RewardHistory[] {
     return this.data.filter((rewardHistory) => rewardHistory.staking.toLowerCase() === address);

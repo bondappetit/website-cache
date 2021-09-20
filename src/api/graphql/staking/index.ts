@@ -75,7 +75,7 @@ export const stakingType = new GraphQLObjectType<Staking, Request>({
       resolve: ({ stakingToken, stakingTokenType }, args, { currentNetwork }) => {
         if (stakingTokenType !== StakingTokenType.Plain) return null;
 
-        return container.model.uniswapLPService().find(currentNetwork, stakingToken);
+        return container.model.uniswapLPService.find(currentNetwork, stakingToken);
       },
     },
     stakingTokenUniswap: {
@@ -84,7 +84,7 @@ export const stakingType = new GraphQLObjectType<Staking, Request>({
       resolve: ({ stakingToken, stakingTokenType }, args, { currentNetwork }) => {
         if (stakingTokenType !== StakingTokenType.UniswapLP) return null;
 
-        return container.model.uniswapLPService().find(currentNetwork, stakingToken);
+        return container.model.uniswapLPService.find(currentNetwork, stakingToken);
       },
     },
     rewardToken: {
@@ -290,7 +290,7 @@ export const stakingType = new GraphQLObjectType<Staking, Request>({
         const stakingUsers = await Promise.all<StakingUserSource & { user: undefined }>(
           address.map(async (address: string) => ({
             staking,
-            user: await container.model.stakingUserService().find(staking, address),
+            user: await container.model.stakingUserService.find(staking, address),
           })),
         );
 
@@ -299,7 +299,7 @@ export const stakingType = new GraphQLObjectType<Staking, Request>({
     },
     rewardHistory: {
       type: GraphQLNonNull(GraphQLList(GraphQLNonNull(rewardHistoryType))),
-      resolve: (staking) => container.model.stakingRewardHistory().find(staking),
+      resolve: (staking) => container.model.stakingRewardHistory.find(staking),
     },
   },
 });

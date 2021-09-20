@@ -1,25 +1,15 @@
 import { Factory } from '@services/Container';
-import { Logger } from '@services/Logger/Logger';
 import { MediumRssGetter } from '@services/Medium/Rss';
 import dayjs from 'dayjs';
 import Knex from 'knex';
 import { MediumPost, MediumPostTable } from './Entity';
 
-export function factory(
-  database: Knex,
-  postTable: Factory<MediumPostTable>,
-  mediumRss: MediumRssGetter,
-  ttl: number,
-) {
-  return () => new MediumService(database, postTable, mediumRss, ttl);
-}
-
 export class MediumService {
   constructor(
-    readonly database: Knex = database,
-    readonly postTable: Factory<MediumPostTable> = postTable,
-    readonly mediumRss: MediumRssGetter = mediumRss,
-    readonly ttl: number = ttl,
+    readonly database: Knex,
+    readonly postTable: Factory<MediumPostTable>,
+    readonly mediumRss: MediumRssGetter,
+    readonly ttl: number,
   ) {}
 
   async findAll(): Promise<MediumPost[]> {

@@ -45,7 +45,7 @@ export const profitDistributorType = new GraphQLObjectType<ProfitDistributor, Re
       type: tokenType,
       description: 'Staking token',
       resolve: ({ stakingToken }, args, { currentNetwork }) => {
-        return container.model.tokenService().find(currentNetwork, stakingToken);
+        return container.model.tokenService.find(currentNetwork, stakingToken);
       },
     },
     stakingTokenDecimals: {
@@ -56,7 +56,7 @@ export const profitDistributorType = new GraphQLObjectType<ProfitDistributor, Re
       type: tokenType,
       description: 'Reward token address',
       resolve: ({ rewardToken }, args, { currentNetwork }) => {
-        return container.model.tokenService().find(currentNetwork, rewardToken);
+        return container.model.tokenService.find(currentNetwork, rewardToken);
       },
     },
     rewardTokenDecimals: {
@@ -224,7 +224,7 @@ export const profitDistributorType = new GraphQLObjectType<ProfitDistributor, Re
         const stakingUsers = await Promise.all<ProfitDistributorUserSource & { user: undefined }>(
           address.map(async (address: string) => ({
             staking,
-            user: await container.model.profitDistributorUserService().find(staking, address),
+            user: await container.model.profitDistributorUserService.find(staking, address),
           })),
         );
 

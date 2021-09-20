@@ -6,21 +6,12 @@ import { Network } from '@services/Network/Network';
 import { Wallet, WalletTable } from './Entity';
 import { NetworkResolverHttp } from '@services/Ethereum/Web3';
 
-export function factory(
-  logger: Logger,
-  table: Factory<WalletTable>,
-  web3Resolver: NetworkResolverHttp,
-  ttl: number,
-) {
-  return () => new WalletService(logger, table, web3Resolver, ttl);
-}
-
 export class WalletService {
   constructor(
-    readonly logger: Logger = logger,
-    readonly table: Factory<WalletTable> = table,
-    readonly web3Resolver: NetworkResolverHttp = web3Resolver,
-    readonly ttl: number = ttl,
+    readonly logger: Logger,
+    readonly table: Factory<WalletTable>,
+    readonly web3Resolver: NetworkResolverHttp,
+    readonly ttl: number,
   ) {}
 
   async find(network: Network, address: EthAddress): Promise<Wallet | undefined> {

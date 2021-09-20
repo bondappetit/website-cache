@@ -78,21 +78,13 @@ export interface AssetInfo {
   originTransactionId: string;
 }
 
-export function factory(
-  logger: Logger,
-  table: Factory<SwopfiLiquidityPoolTable>,
-  ttl: number,
-) {
-  return () => new SwopfiLiquidityPoolService(logger, table, ttl);
-}
-
 const swopTokenId = 'Ehie5xYpeN8op1Cctc6aGUrqx8jq3jtf1DSjXDbfm7aT';
 
 export class SwopfiLiquidityPoolService {
   constructor(
-    readonly logger: Logger = logger,
-    readonly table: Factory<SwopfiLiquidityPoolTable> = table,
-    readonly ttl: number = ttl,
+    readonly logger: Logger,
+    readonly table: Factory<SwopfiLiquidityPoolTable>,
+    readonly ttl: number,
   ) {}
 
   async find(network: number, address: string): Promise<SwopfiLiquidityPool | undefined> {

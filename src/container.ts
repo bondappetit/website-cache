@@ -14,7 +14,7 @@ import config from './config';
 class AppContainer extends Container<typeof config> {
   readonly logger = new Logger.ConsoleLogger();
 
-  readonly webServer = singleton(Express.factory(this.parent.container.webServer));
+  readonly webServer = Express.factory(this.parent.container.webServer);
 
   readonly database = Database.factory(this.parent.container.database);
 

@@ -73,8 +73,8 @@ export async function getCircl(req: Request, res: Response) {
     currentBlockNumber.set(mainETHNetwork.id, await mainEthProvider.eth.getBlockNumber());
     currentBlockNumber.set(mainBSCNetwork.id, await mainBscProvider.eth.getBlockNumber());
 
-    const stakingService = container.model.stakingService();
-    const stakingRewardHistoryService = container.model.stakingRewardHistory();
+    const { stakingService } = container.model;
+    const stakingRewardHistoryService = container.model.stakingRewardHistory;
     const stakings = await stakingAddresses.reduce(async (prev, { network, address }) => {
       const res = await prev;
 

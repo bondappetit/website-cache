@@ -20,23 +20,13 @@ function blockToDate(averageBlockTime: string | number, interval: BigNumber | nu
   );
 }
 
-export function factory(
-  logger: Logger,
-  table: Factory<ProfitDistributorTable>,
-  web3Resolver: NetworkResolverHttp,
-  tokenService: Factory<TokenService>,
-  ttl: number,
-) {
-  return () => new ProfitDistributorService(logger, table, web3Resolver, tokenService, ttl);
-}
-
 export class ProfitDistributorService {
   constructor(
-    readonly logger: Logger = logger,
-    readonly table: Factory<ProfitDistributorTable> = table,
-    readonly web3Resolver: NetworkResolverHttp = web3Resolver,
-    readonly tokenService: Factory<TokenService> = tokenService,
-    readonly ttl: number = ttl,
+    readonly logger: Logger,
+    readonly table: Factory<ProfitDistributorTable>,
+    readonly web3Resolver: NetworkResolverHttp,
+    readonly tokenService: TokenService,
+    readonly ttl: number,
   ) {}
 
   async find(network: Network, address: EthAddress): Promise<ProfitDistributor | undefined> {
@@ -81,8 +71,8 @@ export class ProfitDistributorService {
         stakingTokenContract.methods.decimals().call,
       ]);
       const [rewardToken, stakingToken] = await Promise.all([
-        this.tokenService().find(network, rewardTokenAddress.toLowerCase()),
-        this.tokenService().find(network, stakingTokenAddress.toLowerCase()),
+        this.tokenService.find(network, rewardTokenAddress.toLowerCase()),
+        this.tokenService.find(network, stakingTokenAddress.toLowerCase()),
       ]);
       const rewardTokenPriceUSD = new BigNumber(rewardToken?.priceUSD ?? '0');
       const stakingTokenPriceUSD = new BigNumber(stakingToken?.priceUSD ?? '0');

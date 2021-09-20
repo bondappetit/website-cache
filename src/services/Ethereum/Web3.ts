@@ -13,11 +13,11 @@ export interface HttpFactoryConfig {
 }
 
 export function wsFactory({ host, options }: WebsocketFactoryConfig) {
-  return () => new Web3(new Web3.providers.WebsocketProvider(host, options));
+  return new Web3(new Web3.providers.WebsocketProvider(host, options));
 }
 
 export function httpFactory({ host, options }: HttpFactoryConfig) {
-  return () => new Web3(new Web3.providers.HttpProvider(host, options));
+  return new Web3(new Web3.providers.HttpProvider(host, options));
 }
 
 export interface HttpNetworkResolverConfig extends HttpFactoryConfig {
@@ -33,7 +33,7 @@ export function networkResolverHttpFactory(
       ...config.networks.reduce(
         (container, network) => ({
           ...container,
-          [network.toString()]: singleton(httpFactory(config)),
+          [network.toString()]: httpFactory(config),
         }),
         {},
       ),
@@ -44,13 +44,13 @@ export function networkResolverHttpFactory(
   return {
     networks: resolver,
     get(network: string | number) {
-      return this.networks[network.toString()] ? this.networks[network.toString()]() : null;
+      return this.networks[network.toString()] ? this.networks[network.toString()] : null;
     },
   };
 }
 
 export interface NetworkResolverHttp {
-  networks: { [network: string]: Factory<Web3> };
+  networks: { [network: string]: Web3 };
   get(network: string | number): Web3 | null;
 }
 

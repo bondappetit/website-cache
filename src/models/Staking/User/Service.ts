@@ -8,21 +8,12 @@ import { makeBatchRequest, NetworkResolverHttp } from '@services/Ethereum/Web3';
 import StakingABI from '@bondappetit/networks/abi/Staking.json';
 import { AbiItem } from 'web3-utils';
 
-export function factory(
-  logger: Logger,
-  table: Factory<StakingUserTable>,
-  web3Resolver: NetworkResolverHttp,
-  ttl: number,
-) {
-  return () => new StakingUserService(logger, table, web3Resolver, ttl);
-}
-
 export class StakingUserService {
   constructor(
-    readonly logger: Logger = logger,
-    readonly table: Factory<StakingUserTable> = table,
-    readonly web3Resolver: NetworkResolverHttp = web3Resolver,
-    readonly ttl: number = ttl,
+    readonly logger: Logger,
+    readonly table: Factory<StakingUserTable>,
+    readonly web3Resolver: NetworkResolverHttp,
+    readonly ttl: number,
   ) {}
 
   async find(staking: Staking, address: EthAddress): Promise<StakingUser | undefined> {

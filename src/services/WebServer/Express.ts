@@ -6,12 +6,10 @@ export interface FactoryConfig {
 }
 
 export function factory({ port }: FactoryConfig) {
-  return () => {
-    const app = express();
-    const server = createServer(app);
+  const app = express();
+  const server = createServer(app);
 
-    return new WebServer(app, server, port);
-  };
+  return new WebServer(app, server, port);
 }
 
 export class WebServer {

@@ -11,32 +11,22 @@ import { AbiItem } from 'web3-utils';
 import axios from 'axios';
 import { NetworkResolverHttp } from '@services/Ethereum/Web3';
 
-export function factory(
-  logger: Logger,
-  table: Factory<TokenTable>,
-  web3Resolver: NetworkResolverHttp,
-  getPriceFeed: PriceFeed.Factory,
-  getVolumeFeed: VolumeFeed.Factory,
-  ttl: number,
-) {
-  return () => new TokenService(logger, table, web3Resolver, getPriceFeed, getVolumeFeed, ttl);
-}
+const urlMap: { [k: number]: string } = {
+  1: 'https://api.thegraph.com/subgraphs/name/ianlapham/uniswapv2',
+  // 56: 'https://api.thegraph.com/subgraphs/name/bscnodes/pancakeswap',
+};
 
 export class TokenService {
   constructor(
-    readonly logger: Logger = logger,
-    readonly table: Factory<TokenTable> = table,
-    readonly web3Resolver: NetworkResolverHttp = web3Resolver,
-    readonly getPriceFeed: PriceFeed.Factory = getPriceFeed,
-    readonly getVolumeFeed: VolumeFeed.Factory = getVolumeFeed,
-    readonly ttl: number = ttl,
+    readonly logger: Logger,
+    readonly table: Factory<TokenTable>,
+    readonly web3Resolver: NetworkResolverHttp,
+    readonly getPriceFeed: PriceFeed.Factory,
+    readonly getVolumeFeed: VolumeFeed.Factory,
+    readonly ttl: number,
   ) {}
 
   async getLastDayTokenStat(network: Network, address: EthAddress) {
-    const urlMap: { [k: number]: string } = {
-      1: 'https://api.thegraph.com/subgraphs/name/ianlapham/uniswapv2',
-      // 56: 'https://api.thegraph.com/subgraphs/name/bscnodes/pancakeswap',
-    };
     const url = urlMap[network.id];
     if (!url) return;
 

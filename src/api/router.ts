@@ -61,9 +61,10 @@ export function use({ server, express }: WebServer) {
                   Object.entries(stakingAddresses).map(([chainId, addresses]) =>
                     Promise.all(
                       addresses.map(async (address: string) =>
-                        container.model
-                          .stakingService()
-                          .find(container.network(parseInt(chainId, 10)), address),
+                        container.model.stakingService.find(
+                          container.network(parseInt(chainId, 10)),
+                          address,
+                        ),
                       ),
                     ),
                   ),
@@ -73,9 +74,10 @@ export function use({ server, express }: WebServer) {
                   .reduce(async (sum: Promise<BigNumber>, staking: Staking | undefined) => {
                     if (staking === undefined) return sum;
 
-                    const pair = await container.model
-                      .uniswapLPService()
-                      .find(container.network(staking.network), staking.stakingToken);
+                    const pair = await container.model.uniswapLPService.find(
+                      container.network(staking.network),
+                      staking.stakingToken,
+                    );
                     if (pair === undefined) return sum;
 
                     return (await sum).plus(
@@ -90,8 +92,8 @@ export function use({ server, express }: WebServer) {
                   }, Promise.resolve(new BigNumber(0)));
                 const swopfiAddresses = ['3PAgYAV4jYJ7BF8LCVNU9tyWCBtQaqeLQH4'];
                 const swopfis = await Promise.all(
-                  swopfiAddresses.map(async (address: string) =>
-                    container.model.swopfiLPService().find(0, address),
+                  swopfiAddresses.map((address: string) =>
+                    container.model.swopfiLPService.find(0, address),
                   ),
                 );
                 const swopfiTVL = await ([] as Array<SwopfiLiquidityPool | undefined>)
@@ -129,7 +131,7 @@ export function use({ server, express }: WebServer) {
               },
             },
             resolve: async (root, { filter: { address } }, { currentNetwork }) => {
-              const token = await container.model.tokenService().find(currentNetwork, address);
+              const token = await container.model.tokenService.find(currentNetwork, address);
 
               return token ? { data: token } : { error: 'Token not found' };
             },
@@ -155,8 +157,8 @@ export function use({ server, express }: WebServer) {
               if (address.length == 0) return [];
 
               const tokens = await Promise.all(
-                address.map(async (address: string) =>
-                  container.model.tokenService().find(currentNetwork, address),
+                address.map((address: string) =>
+                  container.model.tokenService.find(currentNetwork, address),
                 ),
               );
 
@@ -181,7 +183,7 @@ export function use({ server, express }: WebServer) {
               },
             },
             resolve: async (root, { filter: { address } }, { currentNetwork }) => {
-              const pair = await container.model.uniswapLPService().find(currentNetwork, address);
+              const pair = await container.model.uniswapLPService.find(currentNetwork, address);
 
               return pair ? { data: pair } : { error: 'Pair not found' };
             },
@@ -207,8 +209,8 @@ export function use({ server, express }: WebServer) {
               if (address.length == 0) return [];
 
               const pairs = await Promise.all(
-                address.map(async (address: string) =>
-                  container.model.uniswapLPService().find(currentNetwork, address),
+                address.map((address: string) =>
+                  container.model.uniswapLPService.find(currentNetwork, address),
                 ),
               );
 
@@ -233,7 +235,7 @@ export function use({ server, express }: WebServer) {
               },
             },
             resolve: async (root, { filter: { address } }, { currentNetwork }) => {
-              const staking = await container.model.stakingService().find(currentNetwork, address);
+              const staking = await container.model.stakingService.find(currentNetwork, address);
 
               return staking ? { data: staking } : { error: 'Staking not found' };
             },
@@ -259,8 +261,8 @@ export function use({ server, express }: WebServer) {
               if (address.length == 0) return [];
 
               const stakings = await Promise.all(
-                address.map(async (address: string) =>
-                  container.model.stakingService().find(currentNetwork, address),
+                address.map((address: string) =>
+                  container.model.stakingService.find(currentNetwork, address),
                 ),
               );
 
@@ -285,9 +287,10 @@ export function use({ server, express }: WebServer) {
               },
             },
             resolve: async (root, { filter: { address } }, { currentNetwork }) => {
-              const staking = await container.model
-                .profitDistributorService()
-                .find(currentNetwork, address);
+              const staking = await container.model.profitDistributorService.find(
+                currentNetwork,
+                address,
+              );
 
               return staking ? { data: staking } : { error: 'Staking not found' };
             },
@@ -313,8 +316,8 @@ export function use({ server, express }: WebServer) {
               if (address.length == 0) return [];
 
               const stakings = await Promise.all(
-                address.map(async (address: string) =>
-                  container.model.profitDistributorService().find(currentNetwork, address),
+                address.map((address: string) =>
+                  container.model.profitDistributorService.find(currentNetwork, address),
                 ),
               );
 
@@ -323,8 +326,8 @@ export function use({ server, express }: WebServer) {
           },
           mediumPostList: {
             type: GraphQLNonNull(GraphQLList(GraphQLNonNull(mediumPostType))),
-            resolve: async () => {
-              return container.model.mediumPostService().findAll();
+            resolve: () => {
+              return container.model.mediumPostService.findAll();
             },
           },
           wallet: {
@@ -345,7 +348,7 @@ export function use({ server, express }: WebServer) {
               },
             },
             resolve: async (root, { filter: { address } }, { currentNetwork }) => {
-              const wallet = await container.model.walletService().find(currentNetwork, address);
+              const wallet = await container.model.walletService.find(currentNetwork, address);
 
               return wallet ? { data: wallet } : { error: 'Wallet not found' };
             },
@@ -371,8 +374,8 @@ export function use({ server, express }: WebServer) {
               if (address.length == 0) return [];
 
               const wallets = await Promise.all(
-                address.map(async (address: string) =>
-                  container.model.walletService().find(currentNetwork, address),
+                address.map((address: string) =>
+                  container.model.walletService.find(currentNetwork, address),
                 ),
               );
 
@@ -397,7 +400,7 @@ export function use({ server, express }: WebServer) {
               },
             },
             resolve: async (root, { filter: { address } }) => {
-              const pair = await container.model.swopfiLPService().find(1, address);
+              const pair = await container.model.swopfiLPService.find(1, address);
 
               return pair ? { data: pair } : { error: 'Pair not found' };
             },
@@ -423,9 +426,7 @@ export function use({ server, express }: WebServer) {
               if (address.length == 0) return [];
 
               const pairs = await Promise.all(
-                address.map(async (address: string) =>
-                  container.model.swopfiLPService().find(1, address),
-                ),
+                address.map((address: string) => container.model.swopfiLPService.find(1, address)),
               );
 
               return pairs.filter((pair) => pair !== undefined);
@@ -444,9 +445,12 @@ export function use({ server, express }: WebServer) {
               },
             },
             resolve: (root, { input }, { currentNetwork }) => {
-              return container.model
-                .burgerSwapTransitService()
-                .add(currentNetwork, input.tx, input.type, input.owner);
+              return container.model.burgerSwapTransitService.add(
+                currentNetwork,
+                input.tx,
+                input.type,
+                input.owner,
+              );
             },
           },
         },
