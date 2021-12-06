@@ -24,6 +24,8 @@ import * as WalletEntity from './Wallet/Entity';
 import * as WalletService from './Wallet/Service';
 import * as SwopfiLiquidityPoolEntity from './Swopfi/Entity';
 import * as SwopfiLiquidityPoolService from './Swopfi/Service';
+import * as UniV3LiquidityPoolEntity from './UniV3/Entity';
+import * as UniV3LiquidityPoolService from './UniV3/Service';
 
 export class ModelContainer extends Container<typeof AppContainer> {
   readonly migrationTable = MigrationEntity.migrationTableFactory(this.parent.database);
@@ -140,6 +142,16 @@ export class ModelContainer extends Container<typeof AppContainer> {
   readonly swopfiLPService = new SwopfiLiquidityPoolService.SwopfiLiquidityPoolService(
     this.parent.logger,
     this.swopfiLPTable,
+    60,
+  );
+
+  readonly uniV3LPTable = UniV3LiquidityPoolEntity.uniV3LiquidityPoolTableFactory(
+    this.parent.database,
+  );
+
+  readonly uniV3LPService = new UniV3LiquidityPoolService.UniV3LiquidityPoolService(
+    this.parent.logger,
+    this.uniV3LPTable,
     60,
   );
 }

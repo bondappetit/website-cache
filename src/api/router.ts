@@ -26,6 +26,7 @@ import { mediumPostType } from './graphql/medium';
 import { swopfiPairPayload, swopfiPairType } from './graphql/swopfi';
 import { SwopfiLiquidityPool } from '@models/Swopfi/Entity';
 import dayjs from 'dayjs';
+import { uniswapV3PairPayload, uniswapV3PairType } from './graphql/uniswapV3Pair';
 
 export function use({ server, express }: WebServer) {
   const complexityLimit = createComplexityLimitRule(5000, {
@@ -106,9 +107,22 @@ export function use({ server, express }: WebServer) {
                     },
                     Promise.resolve(new BigNumber(0)),
                   );
+                const uniV3Addresses = [
+                  mainETHNetwork.data.contracts.UsdcStableUniswapV3Pool.address,
+                ];
+                const uniV3TVL = await uniV3Addresses.reduce(async (prev, pool) => {
+                  const sum = await prev;
+                  const poolStat = await container.model.uniV3LPService.find(
+                    container.network(1),
+                    pool,
+                  );
+                  if (!poolStat) return sum;
+
+                  return sum.plus(poolStat.totalLiquidityUSD);
+                }, Promise.resolve(new BigNumber(0)));
 
                 return [
-                  new BigNumber(stakingTVL).plus(swopfiTVL).toFixed(2),
+                  new BigNumber(stakingTVL).plus(swopfiTVL).plus(uniV3TVL).toFixed(2),
                   dayjs().add(1, 'minutes').toDate(),
                 ];
               }),
@@ -427,6 +441,58 @@ export function use({ server, express }: WebServer) {
 
               const pairs = await Promise.all(
                 address.map((address: string) => container.model.swopfiLPService.find(1, address)),
+              );
+
+              return pairs.filter((pair) => pair !== undefined);
+            },
+          },
+          uniswapV3Pair: {
+            type: GraphQLNonNull(uniswapV3PairPayload),
+            args: {
+              filter: {
+                type: GraphQLNonNull(
+                  new GraphQLInputObjectType({
+                    name: 'UniswapV3PairQueryFilterInputType',
+                    fields: {
+                      address: {
+                        type: GraphQLNonNull(GraphQLString),
+                        description: 'Target pair address',
+                      },
+                    },
+                  }),
+                ),
+              },
+            },
+            resolve: async (root, { filter: { address } }, { currentNetwork }) => {
+              const pair = await container.model.uniV3LPService.find(currentNetwork, address);
+
+              return pair ? { data: pair } : { error: 'Pair not found' };
+            },
+          },
+          uniswapV3PairList: {
+            type: GraphQLNonNull(GraphQLList(GraphQLNonNull(uniswapV3PairType))),
+            args: {
+              filter: {
+                type: new GraphQLInputObjectType({
+                  name: 'UniswapV3PairListQueryFilterInputType',
+                  fields: {
+                    address: {
+                      type: GraphQLList(GraphQLNonNull(GraphQLString)),
+                      description: 'List of target pair addresses',
+                    },
+                  },
+                }),
+              },
+            },
+            resolve: async (root, { filter }, { currentNetwork }) => {
+              const { address } = filter ?? { address: [] };
+
+              if (address.length == 0) return [];
+
+              const pairs = await Promise.all(
+                address.map((address: string) =>
+                  container.model.uniswapLPService.find(currentNetwork, address),
+                ),
               );
 
               return pairs.filter((pair) => pair !== undefined);
