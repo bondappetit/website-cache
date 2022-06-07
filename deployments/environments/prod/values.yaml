@@ -35,14 +35,14 @@ ingress:
     cert-manager.io/cluster-issuer: "letsencrypt-production"
     nginx.ingress.kubernetes.io/proxy-read-timeout: "360"
   hosts:
-    - host: backend.defihelper.io
+    - host: cache.bondappetit.io
       paths:
         - path: /
           pathType: ImplementationSpecific
   tls:
     - secretName: backend-tls
       hosts:
-        - backend.defihelper.io
+        - cache.bondappetit.io
 
 broker:
   maxReplicas: 10
