@@ -5,6 +5,10 @@ import * as VolumeFeed from '../services/VolumeFeed';
 import networks from '@bondappetit/networks';
 import stakingRewardHistory from './stakingRewardHistory.config';
 
+function int(value: string): number {
+  return parseInt(value, 10);
+}
+
 export default {
   container: {
     webServer: {
