@@ -221,7 +221,7 @@ export const profitDistributorType = new GraphQLObjectType<ProfitDistributor, Re
 
         if (address.length == 0) return [];
 
-        const stakingUsers = await Promise.all<ProfitDistributorUserSource & { user: undefined }>(
+        const stakingUsers = await Promise.all<ProfitDistributorUserSource | { user: undefined }>(
           address.map(async (address: string) => ({
             staking,
             user: await container.model.profitDistributorUserService.find(staking, address),

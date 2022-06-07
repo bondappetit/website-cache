@@ -287,7 +287,7 @@ export const stakingType = new GraphQLObjectType<Staking, Request>({
 
         if (address.length == 0) return [];
 
-        const stakingUsers = await Promise.all<StakingUserSource & { user: undefined }>(
+        const stakingUsers = await Promise.all<StakingUserSource | { user: undefined }>(
           address.map(async (address: string) => ({
             staking,
             user: await container.model.stakingUserService.find(staking, address),
