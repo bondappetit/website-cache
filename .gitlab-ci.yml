@@ -11,7 +11,7 @@ default:
     - adcorn-dev
 
 variables:
-  APP_NAME: "backend"
+  APP_NAME: "ba-cache"
   APP_NAMESPACE: "${CI_PROJECT_ROOT_NAMESPACE}-${CI_PROJECT_NAME}"
   ENVIRONMENT: dev
   KUBECONFIG_B64: $DEV_KUBECONFIG_B64
@@ -28,7 +28,7 @@ build:app:
     KUBERNETES_CPU_LIMIT: 2
     KUBERNETES_MEMORY_REQUEST: 2048Mi
     KUBERNETES_MEMORY_LIMIT: 2048Mi
-    APP_NAME: "app"
+    APP_NAME: "ba-cache"
   extends: .build_image
   rules:
     - if: $CI_COMMIT_REF_NAME == "master"
@@ -43,7 +43,7 @@ build:app:
 build:nginx:
   stage: build
   variables:
-    APP_NAME: "nginx"
+    APP_NAME: "ba-cache-nginx"
   extends: .build_image
   rules:
     - if: $CI_COMMIT_REF_NAME == "master"
