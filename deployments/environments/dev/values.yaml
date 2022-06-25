@@ -6,7 +6,7 @@ replicaCount: 1
 
 images:
   nginx:
-    name: nginx
+    name: ba-cache-nginx
     resources:
       requests:
         memory: 128Mi
@@ -15,7 +15,7 @@ images:
         memory: 128Mi
         cpu: 1000m
   app:
-    name: app
+    name: ba-cache
     resources:
       requests:
         memory: 128Mi
