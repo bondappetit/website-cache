@@ -28,16 +28,12 @@ export default {
         host: process.env.ETH_NODE ?? '',
       },
       {
-        networks: [networks.ropsten.networkId],
-        host: process.env.ETH_ROPSTEN_NODE ?? '',
+        networks: [networks.goerli.networkId],
+        host: process.env.ETH_GOERLI_NODE ?? '',
       },
       {
         networks: [networks.mainBSC.networkId],
         host: process.env.BSC_NODE ?? '',
-      },
-      {
-        networks: [networks.testnetBSC.networkId],
-        host: process.env.BSC_TESTNET_NODE ?? '',
       },
     ],
     priceFeed: [
@@ -82,8 +78,8 @@ export default {
         },
       },
       {
-        networks: [networks.ropsten.networkId],
-        token: networks.ropsten.assets.Governance.address,
+        networks: [networks.goerli.networkId],
+        token: networks.goerli.assets.Governance.address,
         gateway: {
           type: 'coingecko',
           currency: 'usd',
@@ -91,8 +87,8 @@ export default {
         },
       },
       {
-        networks: [networks.ropsten.networkId],
-        token: networks.ropsten.assets.yGovernance.address,
+        networks: [networks.goerli.networkId],
+        token: networks.goerli.assets.yGovernance.address,
         gateway: {
           type: 'coingecko',
           currency: 'usd',
@@ -100,8 +96,8 @@ export default {
         },
       },
       {
-        networks: [networks.ropsten.networkId],
-        token: networks.ropsten.assets.Stable.address,
+        networks: [networks.goerli.networkId],
+        token: networks.goerli.assets.Stable.address,
         gateway: {
           type: 'coingecko',
           currency: 'usd',
@@ -109,8 +105,8 @@ export default {
         },
       },
       {
-        networks: [networks.ropsten.networkId],
-        token: networks.ropsten.assets.USDC.address,
+        networks: [networks.goerli.networkId],
+        token: networks.goerli.assets.USDC.address,
         gateway: {
           type: 'coingecko',
           currency: 'usd',

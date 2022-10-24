@@ -43,7 +43,7 @@
     "tsc-watch": "^4.2.9"
   },
   "dependencies": {
-    "@bondappetit/networks": "2.0.20",
+    "@bondappetit/networks": "2.0.22",
     "apollo-server-express": "^2.22.2",
     "axios": "^0.21.1",
     "bignumber.js": "^9.0.1",
